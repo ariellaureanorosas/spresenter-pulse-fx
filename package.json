@@ -1,0 +1,58 @@
+{
+  "name": "com.spresenter.pulse-fx",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pulse FX — efeitos de luz ao vivo para o Spresenter.",
+  "author": "Ariel Laureano Rosas",
+  "license": "MIT",
+  "homepage": "https://github.com/ariellaureanorosas/spresenter-pulse-fx#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ariellaureanorosas/spresenter-pulse-fx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ariellaureanorosas/spresenter-pulse-fx/issues"
+  },
+  "keywords": [
+    "spresenter",
+    "spresenter-plugin",
+    "live",
+    "lighting",
+    "strobe",
+    "pulse",
+    "typescript"
+  ],
+  "scripts": {
+    "build:code": "vite build --config vite.code.config.ts",
+    "build:ui": "vite build --config vite.ui.config.ts",
+    "build": "npm run build:code && npm run build:ui",
+    "package": "npm run build && node scripts/package.mjs",
+    "dev": "concurrently -k \"npm:watch:code\" \"npm:watch:ui\"",
+    "watch:code": "vite build --watch --config vite.code.config.ts",
+    "watch:ui": "vite build --watch --config vite.ui.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@spresenter/plugin-sdk": "file:sdk/spresenter-plugin-sdk.tgz",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "adm-zip": "^0.6.1",
+    "concurrently": "^8.2.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.4.0",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

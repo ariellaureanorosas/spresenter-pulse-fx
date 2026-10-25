@@ -1,0 +1,22 @@
+# Dependências e builds
+node_modules/
+dist/
+release/
+
+# Ferramentas / SO
+.vite/
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs e ambiente
+*.log
+npm-debug.log*
+.env
+.env.local
+.env.*.local
+
+# Editores
+.vscode/
+.idea/
