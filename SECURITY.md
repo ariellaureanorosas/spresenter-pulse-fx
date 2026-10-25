@@ -8,7 +8,9 @@ A versão mais recente da série 1.x recebe correções de segurança.
 
 Não abra uma issue pública. Use o
 [relato privado de vulnerabilidades do GitHub](https://github.com/ariellaureanorosas/spresenter-pulse-fx/security/advisories/new)
-para enviar os detalhes de forma confidencial.
+para enviar os detalhes de forma confidencial. Se esse recurso não estiver
+disponível, envie um e-mail para **ariellaureanorosas@gmail.com** com o assunto
+`[Pulse FX] Relato de segurança`.
 
 Inclua, se possível:
 

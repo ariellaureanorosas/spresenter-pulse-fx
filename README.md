@@ -71,8 +71,8 @@ npm install
 npm run package
 ```
 
-O instalador estará em `release/com.spresenter.pulse-fx-1.0.0.zip`. Uma release
-local também gera o respectivo `.sha256`.
+O instalador estará em `release/com.spresenter.pulse-fx-1.0.0.zip`. O comando
+também gera o respectivo `.sha256` para conferência.
 
 ### Modo de desenvolvimento
 
