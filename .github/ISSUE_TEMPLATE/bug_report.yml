@@ -1,0 +1,75 @@
+name: Relatar um bug
+description: Informe um comportamento incorreto no Pulse FX.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por ajudar a melhorar o Pulse FX. Para vulnerabilidades de
+        segurança, **não use este formulário**; siga a política em SECURITY.md.
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Versão do Pulse FX
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: Versão do Spresenter
+      placeholder: "0.3.50"
+    validations:
+      required: true
+
+  - type: input
+    id: target
+    attributes:
+      label: Saída e camada
+      description: Informe a saída, a camada e o modo usado quando o problema ocorreu.
+      placeholder: "Saída 0 · camada 5 · Hit"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do problema
+      description: O que aconteceu e o que você esperava que acontecesse?
+      placeholder: Descreva o comportamento observado e o esperado.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. Abra o painel...
+        2. Selecione...
+        3. Clique em...
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, capturas ou outras evidências
+      description: Remova dados sensíveis antes de colar qualquer conteúdo.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmações
+      options:
+        - label: Procurei issues existentes antes de abrir este relato.
+          required: true
+        - label: Removi credenciais, caminhos pessoais e dados de terceiros.
+          required: true

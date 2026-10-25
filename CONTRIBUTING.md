@@ -1,7 +1,8 @@
 # Contribuindo com o Pulse FX
 
 Obrigado pelo interesse. Este guia cobre o ambiente, os padrões do projeto e o
-fluxo de revisão.
+fluxo de revisão. Ao participar, você concorda com o
+[Código de Conduta](CODE_OF_CONDUCT.md).
 
 ## Antes de começar
 

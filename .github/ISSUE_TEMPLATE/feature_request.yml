@@ -1,0 +1,49 @@
+name: Sugerir uma melhoria
+description: Proponha uma funcionalidade ou ajuste para o Pulse FX.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema isso resolve?
+      description: Descreva a necessidade ou limitação atual, sem partir direto da solução.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solução proposta
+      description: Explique o comportamento desejado e como ele se integraria ao painel ou à automação.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Interface do painel
+        - Motor de efeitos
+        - Automação
+        - Persistência
+        - Documentação
+        - Outra
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmação
+      options:
+        - label: Verifiquei se a sugestão já existe no README ou nas issues abertas.
+          required: true

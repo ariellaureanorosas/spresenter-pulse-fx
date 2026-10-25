@@ -315,10 +315,11 @@ O que depende do host e não pode ser provado neste repositório:
 
 ## Contribuição e segurança
 
-Contribuições seguem o [guia de contribuição](CONTRIBUTING.md), com
-Conventional Commits, TypeScript estrito e testes para funções puras. Para
-relatar uma vulnerabilidade, use o canal privado descrito em
-[SECURITY.md](SECURITY.md); não abra uma issue pública.
+Contribuições seguem o [guia de contribuição](CONTRIBUTING.md) e o
+[Código de Conduta](CODE_OF_CONDUCT.md), com Conventional Commits, TypeScript
+estrito e testes para funções puras. Para relatar uma vulnerabilidade, use o
+canal privado descrito em [SECURITY.md](SECURITY.md); não abra uma issue
+pública.
 
 ## Licença
 
