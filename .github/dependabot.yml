@@ -9,6 +9,13 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: chore(deps)
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
@@ -16,3 +23,6 @@ updates:
       interval: monthly
     commit-message:
       prefix: chore(ci)
+    groups:
+      github-actions:
+        patterns: ["*"]
