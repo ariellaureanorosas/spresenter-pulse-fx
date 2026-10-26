@@ -2,15 +2,20 @@
 
 ## Versões suportadas
 
-A versão mais recente da série 1.x recebe correções de segurança.
+| Versão | Suporte |
+|---|---|
+| 1.x (mais recente) | Correções de segurança |
+| < 1.0 | Não suportado |
 
 ## Como relatar uma vulnerabilidade
 
-Não abra uma issue pública. Use o
-[relato privado de vulnerabilidades do GitHub](https://github.com/ariellaureanorosas/spresenter-pulse-fx/security/advisories/new)
-para enviar os detalhes de forma confidencial. Se esse recurso não estiver
-disponível, envie um e-mail para **ariellaureanorosas@gmail.com** com o assunto
-`[Pulse FX] Relato de segurança`.
+**Não abra uma issue pública.** O repositório é privado; use um dos canais
+abaixo:
+
+1. **E-mail:** **ariellaureanorosas@gmail.com**, com o assunto
+   `[Pulse FX] Relato de segurança`.
+2. **GitHub Security Advisory:** se o recurso de relato privado estiver
+   habilitado no repositório, use a aba **Security → Report a vulnerability**.
 
 Inclua, se possível:
 
@@ -20,14 +25,29 @@ Inclua, se possível:
 - impacto observado;
 - qualquer evidência, log ou prova de conceito.
 
-O recebimento será confirmado assim que possível. A correção e a divulgação
-serão coordenadas antes de qualquer publicação.
+## Expectativa de resposta
+
+O recebimento é confirmado em até **7 dias úteis**. A correção e a divulgação
+são coordenadas antes de qualquer publicação. Este é um projeto mantido em
+regime de melhor esforço, sem SLA contratual.
 
 ## Escopo
 
-O Pulse FX não coleta telemetria, não faz requisições de rede próprias e não
-armazena credenciais. Ele usa somente as APIs documentadas do Spresenter, com
-as permissões `outputs:read`, `live:read` e `live:write`.
+O Pulse FX:
+
+- não coleta telemetria;
+- não faz requisições de rede próprias;
+- não armazena credenciais;
+- usa somente as APIs documentadas do Spresenter, com as permissões
+  `outputs:read`, `live:read` e `live:write`;
+- trata cor, token de render e texto de camada como entrada não confiável
+  (sanitização testada em `tests/shared/overlay.test.ts`).
 
 Relatos sobre o aplicativo Spresenter, o SDK oficial ou serviços de terceiros
 devem ser encaminhados aos mantenedores desses projetos.
+
+## Boas práticas para quem instala
+
+- Baixe o ZIP apenas da release oficial e confira o SHA-256 publicado ao lado.
+- Mantenha a trava de frequência ligada sempre que possível.
+- Remova o overlay pelo painel antes de desinstalar o plugin.

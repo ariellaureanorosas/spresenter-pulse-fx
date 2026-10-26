@@ -35,4 +35,10 @@ confidencialidade e boa-fé.
 ## Escopo
 
 Este código se aplica a issues, pull requests, revisões, discussões e qualquer
-espaço em que alguém represente o projeto.
+espaço em que alguém represente o projeto — inclusive eventos presenciais ou
+remotos, chamadas e comunicações privadas relacionadas ao projeto.
+
+## Atribuição
+
+Este documento é próprio do Pulse FX e não é uma cópia do Contributor Covenant;
+pode ser reutilizado no projeto com a citação deste repositório.

@@ -7,6 +7,9 @@ projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [1.0.0] - 2026-10-25
 
+Primeira versão instalável do Pulse FX. O plugin nasceu como projeto interno e
+esta é a primeira distribuição empacotada, documentada e verificada.
+
 ### Adicionado
 
 - Efeitos **Hit**, **Strobe** e **Pulse** com cor, intensidade e geometria
@@ -26,8 +29,24 @@ projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   strobe/pulse e aplicar/remover overlay.
 - Persistência versionada com migração da chave legada, proteção contra schema
   futuro e escrita com debounce.
-- 67 testes automatizados cobrindo parâmetros, renderização, storage, fila,
-  seleção, mensagens e handshake.
+- 127 testes automatizados: caracterização do motor contra um host falso,
+  utilitários puros, ponte do painel, `ErrorBoundary` e interface em jsdom, com
+  limites mínimos de cobertura por escopo.
+- Biome para lint e formatação, com gate no CI.
+- Validação de manifesto, integridade do SDK vendorizado, sincronia de versão e
+  checksum recalculado no empacotamento.
+- Workflow de release por tag com ZIP, SHA-256 e notas extraídas do CHANGELOG.
+- `ErrorBoundary` no painel: uma falha de renderização mostra a mensagem e
+  permite tentar novamente sem derrubar a thread de lógica.
+
+### Alterado
+
+- `minAppVersion` passou de `0.3.0` para **`0.3.50`**, a versão do app usada
+  como referência e a mesma combinação (`0.3.50` + SDK `0.5.0`) dos templates
+  oficiais e de outros plugins instalados.
+- Versão do plugin com fonte única (`manifest.json`), injetada no build da UI.
+- Documentação reorganizada em `docs/`; o antigo `PLAN.md` virou
+  `docs/ARCHITECTURE.md`.
 
 ### Corrigido
 
@@ -41,12 +60,19 @@ projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   profundidade também no gerador de HTML.
 - Remoção conservadora: o overlay só é limpo quando o stage pertence ao Pulse
   FX.
+- Actions do GitHub fixadas por SHA e auditoria das dependências de runtime no
+  CI.
+- Dependabot com agrupamento e período de espera para pacotes recém-publicados.
+- CodeQL e revisão de dependências em pull request, quando GitHub Code Security
+  está disponível.
 
 ### Documentação
 
 - README em português com instalação, uso, automação, persistência, solução de
   problemas e limitações dependentes do Spresenter.
-- `PLAN.md` com arquitetura, decisões técnicas e registro da verificação no app
-  real (Spresenter 0.3.50).
+- Documentação de arquitetura, protocolo, compatibilidade, release e verificação
+  no app real (Spresenter 0.3.50).
+- Guia de contribuição, política de segurança, código de conduta, suporte e
+  checklist de configuração do GitHub.
 
 [1.0.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.0.0

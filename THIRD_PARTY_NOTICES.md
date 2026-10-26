@@ -6,9 +6,13 @@ terceiros licenciado sob MIT:
 | Componente | Versão | Licença | Uso |
 |---|---:|---|---|
 | @spresenter/plugin-sdk | 0.5.0 | MIT | SDK oficial, vendorizado em `sdk/spresenter-plugin-sdk.tgz` e embutido no build da UI |
-| [React](https://react.dev/) | 18.x | MIT | Runtime da interface, embutido em `dist/ui/` |
-| [React DOM](https://react.dev/) | 18.x | MIT | Runtime da interface, embutido em `dist/ui/` |
-| [Tailwind CSS](https://tailwindcss.com/) | 4.x | MIT | Utilitários CSS compilados em `dist/ui/` |
+| [React](https://react.dev/) | 18.3.1 | MIT | Runtime da interface, embutido em `dist/ui/` |
+| [React DOM](https://react.dev/) | 18.3.1 | MIT | Runtime da interface, embutido em `dist/ui/` |
+| [Tailwind CSS](https://tailwindcss.com/) | 4.3.3 | MIT | Utilitários compilados para CSS em `dist/ui/` (o runtime não é distribuído) |
+
+O SDK vendorizado tem SHA-256
+`7c0ee0b0c4e5b9fb60834e1da65d782713b0db31419bd788572d3da38c3763de`, registrado
+em `sdk/spresenter-plugin-sdk.tgz.sha256` e verificado no CI.
 
 Copyright (c) Spresenter, Meta Platforms, Inc. e colaboradores, e Tailwind Labs,
 conforme aplicável.

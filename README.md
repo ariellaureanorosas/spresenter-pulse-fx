@@ -3,17 +3,33 @@
 <p>
   <a href="https://github.com/ariellaureanorosas/spresenter-pulse-fx/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ariellaureanorosas/spresenter-pulse-fx/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="Licença: MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-22d3ee"></a>
-  <a href="manifest.json"><img alt="Spresenter 0.3.0+" src="https://img.shields.io/badge/Spresenter-0.3.0%2B-8b5cf6"></a>
+  <a href="manifest.json"><img alt="Spresenter 0.3.50+" src="https://img.shields.io/badge/Spresenter-0.3.50%2B-8b5cf6"></a>
+  <a href="package.json"><img alt="Node.js 22.12+" src="https://img.shields.io/badge/Node.js-22.12%2B-339933"></a>
 </p>
 
 **Efeitos de luz ao vivo para o Spresenter.** Um flash, uma piscada ou uma
 respiração suave projetados por cima da saída, com controle de intensidade,
 cor, geometria e uma trava de segurança de frequência.
 
-[Instalação](#instalação) · [Como usar](#como-usar) · [Automação](#automação) ·
-[Desenvolvimento](#desenvolvimento) · [Solução de problemas](#solução-de-problemas)
+<!--
+Demonstração: grave os arquivos descritos em docs/media/README.md e descomente
+o bloco abaixo.
 
-> **Versão 1.0.0** · compatível com Spresenter 0.3.0 ou superior.
+<p align="center">
+  <img src="docs/media/hit.gif" alt="Hit do Pulse FX em uma saída do Spresenter" width="640">
+</p>
+
+| Hit | Strobe | Pulse |
+|---|---|---|
+| ![Hit](docs/media/hit.gif) | ![Strobe](docs/media/strobe.gif) | ![Pulse](docs/media/pulse.gif) |
+-->
+
+[Instalação](#instalação) · [Como usar](#como-usar) · [Automação](#automação) ·
+[Desenvolvimento](#desenvolvimento) · [Documentação](#documentação) ·
+[Solução de problemas](#solução-de-problemas)
+
+> Compatível com Spresenter **0.3.50** ou superior.
+> Repositório privado: instalação e releases exigem acesso de colaborador.
 
 O plugin é composto por duas threads, como a documentação do Spresenter exige:
 a lógica roda isolada, sem DOM, e o painel React apenas envia intenções e
@@ -34,8 +50,9 @@ navegador da saída com CSS `@keyframes`; nenhum frame trafega por IPC.
 
 ## Requisitos
 
-- Spresenter **0.3.0 ou superior**, com suporte a plugins.
-- Para desenvolver: Node.js **22.12 ou superior** e npm.
+- Spresenter **0.3.50 ou superior**, com suporte a plugins.
+- Para desenvolver: Node.js **22.12 ou superior** e npm 10+.
+- Matriz completa em [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
 - O SDK oficial está vendorizado em `sdk/spresenter-plugin-sdk.tgz` (versão
   0.5.0, a mesma referência usada no build).
 
@@ -52,12 +69,14 @@ manifesto declara o mínimo necessário:
 
 ## Instalação
 
-### Pacote pronto
+### Pacote da release
+
+> O repositório é **privado**. O download exige acesso de colaborador ao GitHub.
 
 1. Baixe o ZIP e o checksum na
-   [página de releases](https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/latest).
+   [página de releases](https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases).
 2. No Spresenter, abra **Configurações → Plugins → Instalar (.zip/pasta)** e
-   escolha `com.spresenter.pulse-fx-1.0.0.zip`.
+   escolha `com.spresenter.pulse-fx-<versão>.zip`.
 3. Abra o painel **Pulse FX** na dock ou em uma janela flutuante.
 
 O ZIP contém o `manifest.json` na raiz, o build em `dist/`, o README, a licença
@@ -71,7 +90,7 @@ npm install
 npm run package
 ```
 
-O instalador estará em `release/com.spresenter.pulse-fx-1.0.0.zip`. O comando
+O instalador estará em `release/com.spresenter.pulse-fx-<versão>.zip`. O comando
 também gera o respectivo `.sha256` para conferência.
 
 ### Modo de desenvolvimento
@@ -206,95 +225,60 @@ chegar ao teto técnico de 20 Hz.
 ## Desenvolvimento
 
 ```bash
-npm install
-npm run typecheck   # TypeScript strict, sem emitir arquivos
-npm test            # Vitest: parâmetros, HTML, storage, fila, seleção e mensagens
-npm run build       # dist/code.js + dist/ui/
-npm run package     # build + ZIP e SHA-256 em release/
+npm ci
+npm run verify      # formato, lint, tipos, testes com cobertura, build e ZIP
+npm run dev         # watches de código e UI
+npm run test:watch  # Vitest em watch
 ```
 
-O pacote final contém `manifest.json` na raiz, `dist/` e os arquivos de
-documentação/licença quando presentes. O script `scripts/package.mjs` usa
-`adm-zip`, confere a sincronia de versão entre `manifest.json` e `package.json`
-e gera o checksum SHA-256, sem depender de ferramentas externas.
+O `verify` é o mesmo gate do CI. O pacote final contém `manifest.json` na raiz,
+`dist/`, README, licença e avisos de terceiros. O script `scripts/package.mjs`
+usa `adm-zip`, valida versão/manifesto/SDK e gera o checksum SHA-256, sem
+depender de ferramentas externas.
 
-Cada push e pull request para `main` executa typecheck, os 67 testes, o build e
-o empacotamento no GitHub Actions. O artefato verificável fica disponível na
-execução do workflow.
+Cada push e pull request para `main` executa formatação, lint, typecheck, a
+suíte completa com cobertura, auditoria das dependências de runtime, build e
+empacotamento no GitHub Actions, em Node 22 e 24. O workflow reutilizável
+`.github/workflows/verify.yml` é o mesmo gate chamado pelo release; a tag só
+publica depois que ele passa. CodeQL e revisão de dependências rodam quando
+GitHub Code Security está habilitado.
 
 ### Estrutura
 
 ```
-manifest.json              metadados, escopos, painel e background
-package.json               scripts e dependências
-sdk/                       SDK oficial vendorizado (0.5.0)
-src/code.ts                lógica, palco, fila, storage, automação, ponte UI
-src/shared/types.ts        tipos compartilhados
-src/shared/params.ts       defaults, faixas, normalize, clampFrequency, cores
-src/shared/overlay.ts      buildOverlayHtml / buildPreviewDocument (puro)
-src/shared/storage.ts      schemaVersion, migração e validação
-src/shared/messages.ts     protocolo tipado UI ↔ lógica
-src/shared/selection.ts    seleção, ordem das camadas e labels
-src/shared/queue.ts        fila serial testável
-src/ui/App.tsx             painel React
-src/ui/components/         controles, prévia, modal, toasts, ícones
-src/ui/index.css           tema escuro e responsivo
-tests/                     testes Vitest
-.github/workflows/ci.yml   verificação automática
-PLAN.md                    plano e decisões de implementação
-CHANGELOG.md               histórico de versões
-CONTRIBUTING.md            guia de contribuição
-SECURITY.md                política de segurança
+manifest.json          metadados, escopos, painel e background
+src/code.ts            motor (estado, palco, efeitos, storage, automação, ponte da UI)
+src/logic/             logger da thread de lógica
+src/shared/            tipos, parâmetros, overlay, storage, mensagens e fila (puro)
+src/ui/                painel React (App, components, styles, bridge, ErrorBoundary)
+tests/                 Vitest: shared/, logic/ e ui/
+docs/                  arquitetura, protocolo, compatibilidade, release e verificação
+scripts/               validação de manifesto/SDK, versão, notas de release e ZIP
+sdk/                   SDK oficial vendorizado (0.5.0) + checksum
 ```
 
-### Decisões técnicas
+O mapa de módulos detalhado e as decisões de arquitetura estão em
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-- **Overlay**: um `RECTANGLE` transparente com id estável (`pulsefx-stage`) é
-  aplicado uma vez por `saída:camada`; depois só o HTML do elemento é trocado
-  por `setElement`. A apresentação de palco usa um asset de guid estável, o que
-  permite reconhecer o overlay após reabrir o painel ou reiniciar a lógica.
-- **Renderização paramétrica**: `buildOverlayHtml(params)` é a única fonte do
-  visual para palco e prévia. Reaplica a normalização e o clamp como defesa em
-  profundidade.
-- **Hit**: duração `decayMs`, uma iteração, `forwards`; o token do disparo muda
-  o nome do keyframe e garante reinício limpo.
-- **Strobe**: período `1000 / Hz`, `steps(1, end)`, keyframe de apagado em
-  `flashWidth%`.
-- **Pulse**: um ciclo completo por período com keyframes `0 → 50 → 100`. Usar
-  `alternate` com a duração do período faria a respiração ter metade da
-  frequência pedida.
-- **Unidades relativas**: `%` e `vmin`; nada de pixels fixos na geometria.
-- **Fila serial**: UI, automação, timers e eventos nunca mutam o palco em
-  paralelo.
-- **Troca de parâmetros ao vivo**: se um efeito do painel estiver rodando, as
-  mudanças são re-renderizadas com debounce de ~45 ms. Um overlay aplicado e
-  ocioso não começa a animar sozinho.
-- **Ordem das camadas**: o app instalado lista 0 = Fundo até 5 = Imagem e
-  Vídeo; índice maior é mais acima. A camada “mais alta” é o maior índice não
-  desativado na saída.
+## Documentação
 
-## Limitações e pontos dependentes do app
+- [Arquitetura e decisões](docs/ARCHITECTURE.md)
+- [Protocolo UI ↔ lógica](docs/PROTOCOL.md)
+- [Compatibilidade e limitações](docs/COMPATIBILITY.md)
+- [Processo de release](docs/RELEASING.md)
+- [Configuração do GitHub](docs/GITHUB-SETTINGS.md)
+- [Verificação manual](docs/verification/)
+- [Suporte](SUPPORT.md) · [Contribuição](CONTRIBUTING.md) · [Segurança](SECURITY.md)
 
-O código foi verificado com `tsc`, Vitest, build de produção e empacotamento.
-O que depende do host e não pode ser provado neste repositório:
+## Limitações
 
-- A projeção real do HTML/CSS na saída, em todas as versões de navegador
-  embarcado do Spresenter. A API usada é a documentada (`live.apply`,
-  `live.setState`, `setElement`, `live.clear`).
-- O comportamento visual do editor de automação ao montar os formulários dos
-  nós. Os campos usam apenas `string`, `number` e `boolean`, com `hint`; não
-  dependemos do tipo `select`.
-- A ordem das camadas em instalações futuras. A convenção de maior índice no
-  topo foi confirmada na instalação local de referência (0.3.50) e está
-  isolada em `src/shared/selection.ts`.
-- Não existe, na API documentada, um callback de unload para a thread de
-  lógica. O plugin cancela timers e listeners internos e oferece **PARAR
-  TUDO**, mas a limpeza de um stage já aplicado ao desinstalar ou desativar o
-  plugin depende do host. Se for desinstalar com um overlay na tela, remova-o
-  pelo painel antes.
-- O balanceamento de carga de saídas múltiplas e a política de eventos `live`
-  são do app; o plugin revalida a camada antes de aplicar e reconcilia o estado
-  quando o app avisa que algo mudou.
+O que depende do host e não é provado no repositório está detalhado em
+[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md). Em resumo:
+
+- Não há callback de unload: remova o overlay pelo painel antes de desinstalar.
+- `live.apply` substitui o conteúdo da camada; o plugin não o restaura.
+- A automação aplica e avisa, mas não abre modal de confirmação.
+- A projeção real depende do navegador embarcado do Spresenter.
 
 ## Solução de problemas
 
@@ -317,7 +301,7 @@ O que depende do host e não pode ser provado neste repositório:
 
 Contribuições seguem o [guia de contribuição](CONTRIBUTING.md) e o
 [Código de Conduta](CODE_OF_CONDUCT.md), com Conventional Commits, TypeScript
-estrito e testes para funções puras. Para relatar uma vulnerabilidade, use o
+estrito e testes para toda lógica nova. Para relatar uma vulnerabilidade, use o
 canal privado descrito em [SECURITY.md](SECURITY.md); não abra uma issue
 pública.
 
