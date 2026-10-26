@@ -15,7 +15,7 @@ export const PARAM_RANGES: Record<
   ParamRange
 > = {
   intensity: { min: 0, max: 100, step: 1 },
-  decayMs: { min: 30, max: 2000, step: 10 },
+  decayMs: { min: 30, max: 10000, step: 10 },
   frequencyHz: { min: FREQUENCY_MIN_HZ, max: FREQUENCY_HARD_MAX_HZ, step: 0.1 },
   flashWidth: { min: 5, max: 95, step: 1 },
   thickness: { min: 0, max: 100, step: 1 },

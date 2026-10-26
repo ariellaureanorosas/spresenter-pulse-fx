@@ -5,6 +5,14 @@ Todas as mudanças notáveis deste projeto são documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.3.0] - 2026-10-26
+
+### Adicionado
+
+- A **queda** do modo Hit vai até **10 s** (era 2 s), útil para flashes que
+  dissolvem devagar. O padrão continua 320 ms e o valor segue sempre em ms no
+  painel. Strobe e Pulse não usam esse ajuste.
+
 ## [1.2.1] - 2026-10-26
 
 Ajuste visual na prévia, sem mudança de comportamento.
@@ -133,6 +141,7 @@ Primeira versão instalável do Pulse FX.
 - Documentação de arquitetura, decisões técnicas e registro da verificação no
   app real (Spresenter 0.3.50).
 
+[1.3.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.3.0
 [1.2.1]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.2.1
 [1.2.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.2.0
 [1.1.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.1.0

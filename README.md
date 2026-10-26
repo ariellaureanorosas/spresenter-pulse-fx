@@ -182,7 +182,7 @@ fila serial e a mesma trava de frequência do painel.
 |---|---|---|---|
 | `color` | string | `#ffffff` | Hex (`#ffffff`, `#22d3ee`) ou `rgb(…)`. |
 | `intensity` | number | `85` | 0 a 100. |
-| `decayMs` | number | `320` | Queda em ms, 30 a 2000. |
+| `decayMs` | number | `320` | Queda em ms, 30 a 10000. |
 | `target` | string | `full` | `full`, `vignette` ou `frame`. |
 | `thickness` | number | `35` | Espessura, 0 a 100 (vinheta/moldura). |
 | `softness` | number | `50` | Suavização, 0 a 100 (vinheta/moldura). |

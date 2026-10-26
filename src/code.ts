@@ -1500,7 +1500,7 @@ function registerAutomation(): void {
         type: 'number',
         label: 'Queda (ms)',
         default: 320,
-        hint: '30 a 2000.',
+        hint: '30 a 10000.',
       },
       target: {
         type: 'string',

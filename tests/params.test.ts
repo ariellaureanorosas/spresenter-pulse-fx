@@ -102,6 +102,11 @@ describe('normalização de parâmetros', () => {
     expect(params.frequencyHz).toBe(3);
   });
 
+  it('aceita queda de até 10 s e satura acima disso', () => {
+    expect(normalizeParams({ decayMs: 10000 }).decayMs).toBe(10000);
+    expect(normalizeParams({ decayMs: 99999 }).decayMs).toBe(10000);
+  });
+
   it('aceita aliases em português para modo e alvo', () => {
     expect(normalizeMode('Estroboscópio')).toBe('strobe');
     expect(normalizeMode('respiração')).toBe('pulse');

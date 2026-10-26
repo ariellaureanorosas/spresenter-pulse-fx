@@ -558,7 +558,7 @@ export function App() {
                 onChange={(decayMs) => updateParams({ decayMs })}
                 formatValue={formatMilliseconds}
                 minLabel="30 ms"
-                maxLabel="2 s"
+                maxLabel="10000 ms"
                 hint="Duração do flash"
                 disabled={!ready}
               />

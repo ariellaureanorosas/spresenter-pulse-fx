@@ -99,7 +99,7 @@ cada 12 s) até a primeira resposta. O comportamento está isolado e testado em
 | `color` | `#ffffff` | hex/rgb válido | — | sempre |
 | `target` | `full` | full / vignette / frame | — | sempre |
 | `intensity` | 85 | 0–100 | 1 | sempre |
-| `decayMs` | 320 | 30–2000 | 10 | Hit |
+| `decayMs` | 320 | 30-10000 | 10 | Hit |
 | `frequencyHz` | 2.0 | 0.5–3 (trava) / 0.5–20 | 0.1 | Strobe/Pulse |
 | `flashWidth` | 50 | 5–95 | 1 | Strobe |
 | `thickness` | 35 | 0–100 | 1 | Vinheta/Moldura |
