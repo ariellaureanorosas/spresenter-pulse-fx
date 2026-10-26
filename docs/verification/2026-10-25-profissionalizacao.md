@@ -54,11 +54,11 @@ scripts de validação, CI e documentação), antes da tag `v1.1.0`.
 | SHA-256 (publicado, Node 22) | `f419bc92cd8041ce02ef25a3f04f6d162f30e6c74c6759c451deeb83a62b1f7c` |
 | Checksum | `release/com.spresenter.pulse-fx-1.1.0.zip.sha256` (verificado pelo `package` e pelo workflow) |
 
-O ZIP é reproduzível dentro da mesma versão de Node: duas execuções de
-`npm run package` no mesmo commit geraram o mesmo SHA-256, porque
-`scripts/package.mjs` grava as entradas em ordem estável com timestamp fixo. O
-build do CI (Node 22) tem hash próprio, publicado junto do `.sha256` — é esse que
-vale para quem baixa a release.
+O ZIP é reproduzível dentro do mesmo ambiente de build: duas execuções de
+`npm run package` no mesmo commit e no mesmo Node geraram o mesmo SHA-256,
+porque `scripts/package.mjs` grava as entradas em ordem estável com timestamp
+fixo. O artefato publicado é o construído no CI (Linux, Node 22), com hash
+próprio — é esse que vale para quem baixa a release.
 
 ## O que foi validado
 
