@@ -43,7 +43,10 @@ UI (iframe sandbox)  ⇄ postMessage ⇄  lógica (processo isolado)  ⇄  spres
   depois só HTML autocontido com CSS `@keyframes` é empurrado via `setElement`.
   A animação roda no navegador da saída — nenhum frame trafega por IPC.
 - Um único renderizador paramétrico, `buildOverlayHtml(params)`, cobre Hit,
-  Strobe e Pulse e os três alvos. A prévia usa exatamente a mesma função.
+  Strobe e Pulse e os três alvos. A prévia reaproveita a mesma geometria e os
+  mesmos `@keyframes` por meio de `buildPreviewStyle(params)`, sem `<iframe>`:
+  as unidades de moldura viram `cqmin` para medir o palco do painel em vez da
+  janela.
 
 ## Invariantes
 

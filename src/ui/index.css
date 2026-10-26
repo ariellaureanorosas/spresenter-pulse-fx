@@ -592,77 +592,71 @@ fieldset {
   overflow: hidden;
   border: 1px solid #222c3a;
   border-radius: 11px;
-  background:
-    radial-gradient(ellipse at 50% 40%, #132334 0%, #0b121b 55%, #080d14 100%);
+  /* Xadrez de transparência em tom escuro: mostra o que o efeito deixa ver. */
+  background-color: #0d131b;
+  background-image: conic-gradient(#121a25 25%, #0d131b 0 50%, #121a25 0 75%, #0d131b 0);
+  background-size: 24px 24px;
   isolation: isolate;
 }
 
-.pfx-stage-decor {
+.pfx-stage-canvas {
   position: absolute;
   inset: 0;
+  /* Container das unidades `cqmin` usadas pela geometria gerada. */
+  container-type: size;
+}
+
+.pfx-preview-sheet {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.pfx-stage-replay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  pointer-events: none;
-}
-
-.pfx-stage-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(to right, rgba(167, 190, 217, 0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(167, 190, 217, 0.1) 1px, transparent 1px);
-  background-size: 22px 22px;
-  mask-image: radial-gradient(ellipse at center, black 10%, transparent 76%);
-  opacity: 0.55;
-}
-
-.pfx-stage-glow {
-  position: absolute;
-  width: 54%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(53, 224, 255, 0.16), transparent 66%);
-  filter: blur(8px);
-}
-
-.pfx-stage-word {
-  position: relative;
-  color: rgba(220, 238, 255, 0.3);
-  font-size: 7.5px;
-  font-weight: 800;
-  letter-spacing: 0.3em;
-}
-
-.pfx-stage-title {
-  position: relative;
-  color: rgba(240, 248, 255, 0.86);
-  font-size: clamp(21px, 7.5vw, 34px);
-  font-weight: 800;
-  letter-spacing: -0.045em;
-  line-height: 1;
-  text-shadow: 0 4px 24px rgba(53, 224, 255, 0.24);
-}
-
-.pfx-stage-sub {
-  position: relative;
-  color: rgba(220, 238, 255, 0.27);
-  font-size: 8px;
-  font-weight: 650;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.pfx-stage-frame {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 7px;
   border: 0;
-  pointer-events: none;
+  border-radius: inherit;
   background: transparent;
+  color: rgba(232, 242, 255, 0.78);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pfx-stage-replay:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.pfx-stage-replay:focus-visible {
+  outline: 2px solid rgba(198, 255, 74, 0.75);
+  outline-offset: -2px;
+}
+
+.pfx-stage-replay-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(5, 8, 12, 0.72);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.pfx-stage-replay:hover .pfx-stage-replay-hint,
+.pfx-stage-replay:focus-visible .pfx-stage-replay-hint {
+  opacity: 1;
 }
 
 .pfx-stage-live {
@@ -2224,5 +2218,12 @@ fieldset {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* A prévia existe para mostrar o efeito: sem animação, mostra o pico parado
+     em vez de deixar a folha transparente e o palco vazio. */
+  .pfx-stage .pfx-preview-sheet {
+    animation: none !important;
+    opacity: var(--pfx-preview-peak, 1) !important;
   }
 }

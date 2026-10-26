@@ -5,6 +5,30 @@ Todas as mudanças notáveis deste projeto são documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.2.0] - 2026-10-26
+
+Correção do palco da prévia: ele aparecia branco e não reagia ao clique.
+
+### Corrigido
+
+- **Prévia em branco.** O palco era um `<iframe srcDoc>` com `sandbox=""`
+  aninhado no iframe de origem opaca em que o host carrega a UI do plugin, e não
+  pintava de forma confiável — sobrava um retângulo branco, no qual o flash
+  branco padrão ficava invisível. A prévia agora desenha o efeito direto no DOM,
+  com a mesma geometria e os mesmos `@keyframes` da saída.
+- **Moldura fora de escala.** A geometria usa `vmin` no overlay; no painel isso
+  media a janela, não o palco. A prévia troca por `cqmin` e mede o próprio palco.
+
+### Adicionado
+
+- Malha quadriculada de transparência no palco, em tom escuro, no lugar do decor
+  escuro que ficava escondido atrás do iframe.
+- **Clique em qualquer ponto da prévia** reinicia a animação, além do botão
+  **Repetir**. A área é um botão de verdade: funciona com teclado e tem anel de
+  foco.
+- Com `prefers-reduced-motion`, a prévia mostra o efeito no pico, parado, em vez
+  de sumir.
+
 ## [1.1.0] - 2026-10-25
 
 Rodada de qualidade: o comportamento no palco não muda, mas o plugin passa a ser
@@ -98,5 +122,6 @@ Primeira versão instalável do Pulse FX.
 - Documentação de arquitetura, decisões técnicas e registro da verificação no
   app real (Spresenter 0.3.50).
 
+[1.2.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.2.0
 [1.1.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.1.0
 [1.0.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.0.0

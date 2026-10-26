@@ -133,6 +133,14 @@ npm run build
 5. **Remover da saída** limpa a camada somente quando ela contém o stage do
    Pulse FX. Conteúdo de outra função nunca é apagado pelo remove.
 
+### Prévia local
+
+O cartão **Antes de projetar** mostra o efeito sobre um xadrez de transparência,
+para você ver exatamente o que o overlay deixa passar. **Clique em qualquer
+ponto da prévia** — ou use o botão **Repetir** — para reiniciar a animação. A
+prévia usa o mesmo CSS da saída; mudar modo, cor, intensidade ou alvo atualiza o
+palco na hora.
+
 ### Troca de saída ou camada com overlay ativo
 
 Ao escolher outro destino, o overlay é **movido**: o novo palco é aplicado

@@ -48,13 +48,14 @@ function geometryCss(params: FxParams): string {
 function animationCss(
   params: FxParams,
   animationName: string,
-): { animation: string; keyframes: string } {
+): { animation: string; keyframes: string; peak: string } {
   const peak = cssNumber(Math.min(1, Math.max(0, params.intensity / 100)), 3);
 
   if (params.mode === 'hit') {
     return {
       animation: `animation:${animationName} ${Math.round(params.decayMs)}ms cubic-bezier(.12,.74,.3,1) 0ms 1 normal forwards;`,
       keyframes: `@keyframes ${animationName}{0%{opacity:${peak};}100%{opacity:0;}}`,
+      peak,
     };
   }
 
@@ -68,6 +69,7 @@ function animationCss(
         on,
         1,
       )}%{opacity:0;}100%{opacity:0;}}`,
+      peak,
     };
   }
 
@@ -76,6 +78,7 @@ function animationCss(
   return {
     animation: `animation:${animationName} ${cssNumber(cycle, 3)}ms ease-in-out 0ms infinite normal none;`,
     keyframes: `@keyframes ${animationName}{0%{opacity:0;}50%{opacity:${peak};}100%{opacity:0;}}`,
+    peak,
   };
 }
 
@@ -115,16 +118,29 @@ export function buildOverlayHtml(params: unknown, options: OverlayOptions = {}):
   ].join('\n');
 }
 
-export function buildPreviewDocument(params: unknown, token: string): string {
-  const overlay = buildOverlayHtml(params, { token });
-  return [
-    '<!doctype html>',
-    '<html lang="pt-BR">',
-    '<head><meta charset="utf-8" />',
-    '<meta name="viewport" content="width=device-width, initial-scale=1" />',
-    '<style>html,body{position:relative;width:100%;height:100%;margin:0;padding:0;background:transparent;overflow:hidden;}</style>',
-    '</head><body>',
-    overlay,
-    '</body></html>',
-  ].join('');
+/**
+ * CSS do palco da prévia: a MESMA geometria e animação do overlay real, sem
+ * documento próprio. Duas diferenças deliberadas:
+ *
+ * - `vmin` vira `cqmin`: no overlay o viewport é a saída inteira; no painel o
+ *   palco é um recorte do tamanho da janela. `cqmin` mede o próprio palco
+ *   (`container-type: size` no `.pfx-stage-canvas`), então a proporção é a mesma.
+ * - o pico fica exposto em `--pfx-preview-peak` para o fallback de movimento
+ *   reduzido mostrar o efeito parado, em vez de simplesmente sumir.
+ *
+ * Sem `iframe`: o host embute a UI do plugin em um iframe de origem opaca
+ * (`sandbox="allow-scripts"`), e um `srcdoc` aninhado não pinta de forma
+ * confiável ali — o palco aparecia branco.
+ */
+export function buildPreviewStyle(params: unknown, token: string): { id: string; css: string } {
+  const safe = normalizeParams(params);
+  const id = `pfx-preview-${sanitizeToken(token)}`;
+  const animationName = `${id}-anim`;
+  const { animation, keyframes, peak } = animationCss(safe, animationName);
+  const geometry = geometryCss(safe).replace(/vmin/g, 'cqmin');
+
+  return {
+    id,
+    css: [`#${id}{--pfx-preview-peak:${peak};${geometry}${animation}}`, keyframes].join('\n'),
+  };
 }

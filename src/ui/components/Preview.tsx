@@ -1,13 +1,9 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import { buildPreviewDocument } from '../../shared/overlay';
+import { useId, useMemo, useState } from 'react';
+import { buildPreviewStyle } from '../../shared/overlay';
 import { MODE_LABELS, TARGET_LABELS } from '../../shared/params';
 import type { FxParams } from '../../shared/types';
 import { IconPlay, IconRefresh } from './Icons';
 import { Badge, Card, cx } from './ui';
-
-function previewToken(replay: number): string {
-  return `preview-${replay.toString(36)}-${Date.now().toString(36)}`;
-}
 
 export function Preview({
   params,
@@ -21,21 +17,11 @@ export function Preview({
   owner?: 'ui' | 'automation';
 }) {
   const [replay, setReplay] = useState(0);
-  const [doc, setDoc] = useState(() => buildPreviewDocument(params, previewToken(0)));
-  const firstRender = useRef(true);
+  const rawId = useId();
+  const instance = rawId.replace(/[^a-zA-Z0-9_-]/g, '') || 'stage';
+  const token = `${instance}-${replay.toString(36)}`;
+  const { id, css } = useMemo(() => buildPreviewStyle(params, token), [params, token]);
   const stageLabelId = useId();
-
-  useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      setDoc(buildPreviewDocument(params, previewToken(replay)));
-    }, 85);
-    return () => window.clearTimeout(timer);
-    // `replay` rearma o hit; `params` cobre todos os campos visuais.
-  }, [params, replay]);
 
   const status = active
     ? owner === 'automation'
@@ -44,6 +30,10 @@ export function Preview({
     : applied
       ? 'PRONTO'
       : 'PRÉVIA';
+
+  // `mode` e `target` trocam a geometria/animação; remontar o elemento garante
+  // que a animação recomece em vez de ficar congelada no fim do hit anterior.
+  const sheetKey = `${id}:${params.mode}:${params.target}`;
 
   return (
     <Card
@@ -62,23 +52,26 @@ export function Preview({
         <figcaption id={stageLabelId} className="pfx-visually-hidden">
           Simulação do palco
         </figcaption>
-        <div className="pfx-stage-decor" aria-hidden="true">
-          <span className="pfx-stage-grid" />
-          <span className="pfx-stage-glow" />
-          <span className="pfx-stage-word">SPRESENTER</span>
-          <span className="pfx-stage-title">AO VIVO</span>
-          <span className="pfx-stage-sub">saída simulada</span>
+        <div className="pfx-stage-canvas" aria-hidden="true">
+          <style>{css}</style>
+          <div key={sheetKey} id={id} className="pfx-preview-sheet" />
+          <span className={cx('pfx-stage-live', active && 'is-active')}>
+            <span />
+            {MODE_LABELS[params.mode]}
+          </span>
         </div>
-        <iframe
-          className="pfx-stage-frame"
-          title="Prévia da animação do Pulse FX"
-          sandbox=""
-          srcDoc={doc}
-        />
-        <span className={cx('pfx-stage-live', active && 'is-active')} aria-hidden="true">
-          <span />
-          {MODE_LABELS[params.mode]}
-        </span>
+        <button
+          type="button"
+          className="pfx-stage-replay"
+          onClick={() => setReplay((value) => value + 1)}
+          aria-label="Repetir a prévia"
+          title="Clique para repetir a prévia"
+        >
+          <span className="pfx-stage-replay-hint" aria-hidden="true">
+            <IconRefresh size={11} />
+            Repetir
+          </span>
+        </button>
       </figure>
 
       <div className="pfx-preview-foot">

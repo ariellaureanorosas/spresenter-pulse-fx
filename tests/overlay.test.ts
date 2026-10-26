@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildOverlayHtml, buildPreviewDocument } from '../src/shared/overlay';
+import { buildOverlayHtml, buildPreviewStyle } from '../src/shared/overlay';
 import { DEFAULT_PARAMS } from '../src/shared/params';
 import type { FxParams, FxTarget, PulseMode } from '../src/shared/types';
 
@@ -111,12 +111,42 @@ describe('buildOverlayHtml', () => {
       }
     }
   });
+});
 
-  it('monta um documento de prévia completo', () => {
-    const doc = buildPreviewDocument({ ...BASE, mode: 'strobe' }, 'preview');
-    expect(doc.startsWith('<!doctype html>')).toBe(true);
-    expect(doc).toContain('<html lang="pt-BR">');
-    expect(doc).toContain('pfx-preview-anim');
-    expect(doc).toContain('</html>');
+describe('buildPreviewStyle', () => {
+  it('usa os mesmos keyframes do overlay, em um seletor escopado', () => {
+    const { id, css } = buildPreviewStyle({ ...BASE, mode: 'strobe' }, 'preview');
+    expect(id).toBe('pfx-preview-preview');
+    expect(css).toContain('#pfx-preview-preview{');
+    expect(css).toContain('500ms steps(1, end)');
+    expect(css).toContain('0%{opacity:0.8;}35%{opacity:0;}100%{opacity:0;}');
+  });
+  it('troca vmin por cqmin para medir o palco, não a janela', () => {
+    const { css } = buildPreviewStyle({ ...BASE, target: 'frame' }, 'units');
+    expect(css).toContain('cqmin');
+    expect(css).not.toContain('vmin');
+  });
+
+  it('aplica a trava de frequência como o overlay', () => {
+    const clamped = buildPreviewStyle(
+      { ...BASE, mode: 'pulse', frequencyHz: 9, safetyLock: true },
+      'safe',
+    );
+    expect(clamped.css).toContain('333.333ms');
+  });
+
+  it('expõe o pico para o fallback de movimento reduzido', () => {
+    const { css } = buildPreviewStyle({ ...BASE, intensity: 80 }, 'peak');
+    expect(css).toContain('--pfx-preview-peak:0.8');
+  });
+
+  it('sanitiza o token e não injeta CSS', () => {
+    const { id, css } = buildPreviewStyle(
+      { ...BASE, color: 'red;}body{display:none' },
+      '"><script>alert(1)</script>',
+    );
+    expect(id).toBe('pfx-preview-scriptalert1script');
+    expect(css).not.toContain('<script>');
+    expect(css).not.toContain('display:none');
   });
 });
