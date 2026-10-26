@@ -4,7 +4,7 @@
 
 | Componente | Versão | Observação |
 |---|---|---|
-| Pulse FX | 1.0.0 | Versão atual. |
+| Pulse FX | 1.1.0 | Versão atual. |
 | Spresenter | **0.3.50 ou superior** | `minAppVersion` no manifesto. |
 | SDK de plugins | **0.5.0** | Vendorizado em `sdk/spresenter-plugin-sdk.tgz`. |
 | Node.js (desenvolvimento) | **22.12 ou superior** | `.nvmrc` fixa 22.12.0; CI testa 22 e 24. |
@@ -17,6 +17,9 @@ O app de referência é 0.3.50, os templates oficiais embutidos no app usam
 `minAppVersion` igual à versão do app e o SDK vendorizado é 0.5.0. Não há
 evidência de que o SDK 0.5.0 funcione em 0.3.0; por isso o plugin não promete
 essa combinação. Ver `docs/verification/2026-10-25-baseline.md`.
+
+Quem estiver em uma versão anterior do Spresenter deve permanecer no Pulse FX
+1.0.0, que declara `minAppVersion: 0.3.0`.
 
 ## APIs do host usadas
 

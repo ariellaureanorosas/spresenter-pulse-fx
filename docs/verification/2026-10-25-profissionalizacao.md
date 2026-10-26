@@ -1,10 +1,9 @@
 # Profissionalização do repositório — 2026-10-25
 
-Registro do gate local executado após a rodada de qualidade (lint/format,
-testes, scripts de validação, CI e documentação), antes do commit desta rodada
-sobre `4446041`.
+Registro do gate local executado na rodada de qualidade (lint/format, testes,
+scripts de validação, CI e documentação), antes da tag `v1.1.0`.
 
-**Versão:** 1.0.0
+**Versão:** 1.1.0
 **SDK vendorizado:** 0.5.0
 **Spresenter de referência:** 0.3.50
 **Sistema:** Windows (ambiente de desenvolvimento do mantenedor)
@@ -31,10 +30,10 @@ sobre `4446041`.
 | `npm test` | 15 arquivos, **127 testes**, todos verdes |
 | `npm run test:coverage` | 4,47 s; limites globais e de `src/shared/` atendidos |
 | `npm run verify:sdk` | `@spresenter/plugin-sdk@0.5.0` íntegro (`7c0ee0b0c4e5…`) |
-| `npm run verify:manifest` | válido — `com.spresenter.pulse-fx 1.0.0`, Spresenter ≥ 0.3.50, SDK 0.5.0 |
+| `npm run verify:manifest` | válido — `com.spresenter.pulse-fx 1.1.0`, Spresenter ≥ 0.3.50, SDK 0.5.0 |
 | `npm run version:check` | versão sincronizada em manifest/package/lock |
 | `npm run verify` | gate completo verde |
-| `npm run package` | `release/com.spresenter.pulse-fx-1.0.0.zip` (8 arquivos) |
+| `npm run package` | `release/com.spresenter.pulse-fx-1.1.0.zip` (8 arquivos) |
 
 ## Cobertura
 
@@ -49,10 +48,10 @@ sobre `4446041`.
 
 | Item | Valor |
 |---|---|
-| ZIP | `com.spresenter.pulse-fx-1.0.0.zip` |
+| ZIP | `com.spresenter.pulse-fx-1.1.0.zip` |
 | Conteúdo | `manifest.json` na raiz, `dist/code.js`, `dist/ui/` (HTML + assets), README, licença e avisos |
-| SHA-256 | `b4b4ad6cb1a708f4f7e9e191745d7e1351fab6bb9a6f57322e5015a72a23af1a` |
-| Checksum | `release/com.spresenter.pulse-fx-1.0.0.zip.sha256` (verificado pelo `package`) |
+| SHA-256 | `9736363cf28fefdd74aa0cd9b8361dcfd9f49b9a901bbf9677ded98b7ea42065` |
+| Checksum | `release/com.spresenter.pulse-fx-1.1.0.zip.sha256` (verificado pelo `package`) |
 
 O ZIP é reproduzível: duas execuções de `npm run package` no mesmo commit
 geraram o mesmo SHA-256, porque `scripts/package.mjs` grava as entradas em ordem
@@ -79,9 +78,9 @@ estável com timestamp fixo. O hash muda apenas se o conteúdo empacotado mudar
    `Verify` obrigatório, proteção de tag `v*`, relato privado de
    vulnerabilidades). Se houver GitHub Code Security, definir
    `ENABLE_GHAS=true` para ativar CodeQL e dependency review.
-2. **Release `v1.0.0`**: a tag original aponta para `4446041`, anterior aos
-   scripts de release, e precisa ser recriada no commit desta rodada antes de o
-   workflow `Release` publicar. Validar um `dry_run` em Actions primeiro.
+2. **Release `v1.1.0`**: a 1.0.0 já está publicada (tag em `e8ae4fb`, checksum
+   conferido) e permanece intocada; a 1.1.0 sai da tag deste commit, com
+   `dry_run` validado antes.
 3. **Mídia**: fora do escopo desta rodada (sem sessão de captura disponível).
    Gravar `docs/media/panel.png`, `hit.gif`, `strobe.gif`, `pulse.gif` e
    `targets.png` conforme `docs/media/README.md` e descomentar o bloco no README.

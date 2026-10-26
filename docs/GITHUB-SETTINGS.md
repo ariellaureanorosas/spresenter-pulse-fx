@@ -52,10 +52,12 @@ Isso impede que uma tag de release seja movida depois de publicada.
 
 ## Release
 
-1. Rode o workflow **Release** em `dry_run` com a tag existente para conferir
-   versão, notas e assets.
-2. Rode de novo com `dry_run: false` (ou envie a tag) para publicar.
-3. Confira os dois assets: `.zip` e `.sha256`.
+1. Envie a tag (`git push origin v1.1.0`): o workflow **Release** roda o gate,
+   confere a tag e publica ZIP + `.sha256` automaticamente.
+2. Para revalidar uma tag já existente sem tocar nos assets, use **Actions →
+   Release → Run workflow** com `dry_run: true`; ele imprime as notas e sobe
+   apenas um artefato de workflow.
+3. Confira os dois assets na release.
 4. Baixe ambos, confira o checksum e instale o ZIP no Spresenter de referência.
 
 ## Checklist de revisão trimestral
