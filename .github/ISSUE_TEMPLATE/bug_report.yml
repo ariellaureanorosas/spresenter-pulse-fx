@@ -25,6 +25,17 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: install-source
+    attributes:
+      label: Como o plugin foi instalado?
+      options:
+        - ZIP da release
+        - Pasta de desenvolvimento (`npm run dev`)
+        - Outro
+    validations:
+      required: true
+
   - type: input
     id: target
     attributes:
@@ -72,4 +83,6 @@ body:
         - label: Procurei issues existentes antes de abrir este relato.
           required: true
         - label: Removi credenciais, caminhos pessoais e dados de terceiros.
+          required: true
+        - label: Conferi a versão instalada no painel e no README/`manifest.json`.
           required: true

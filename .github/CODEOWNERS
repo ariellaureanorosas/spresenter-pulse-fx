@@ -1,0 +1,9 @@
+# Mantenedor responsável por todo o repositório.
+* @ariellaureanorosas
+
+# Automação, templates e políticas de repositório.
+/.github/ @ariellaureanorosas
+
+# Empacotamento, release e integridade do SDK.
+/scripts/ @ariellaureanorosas
+/sdk/ @ariellaureanorosas

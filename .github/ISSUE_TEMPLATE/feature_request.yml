@@ -26,6 +26,14 @@ body:
     validations:
       required: false
 
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impacto esperado
+      description: Quem se beneficia, com que frequência e o que muda no fluxo ao vivo?
+    validations:
+      required: true
+
   - type: dropdown
     id: area
     attributes:
@@ -46,4 +54,6 @@ body:
       label: Confirmação
       options:
         - label: Verifiquei se a sugestão já existe no README ou nas issues abertas.
+          required: true
+        - label: Entendo que isso pode exigir uma nova permissão no manifesto (menor privilégio).
           required: true
