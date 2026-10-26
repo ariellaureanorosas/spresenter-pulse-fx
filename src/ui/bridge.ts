@@ -1,13 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { onMessage, postMessage } from '@spresenter/plugin-sdk/ui';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { type ConfirmationRequest, isLogicEvent, type UiCommand } from '../shared/messages';
 import { describeClamp } from '../shared/params';
-import {
-  isLogicEvent,
-  type ConfirmationRequest,
-  type UiCommand,
-} from '../shared/messages';
 import type { ToastLevel, UiState } from '../shared/types';
-import { startHandshake, type Handshake } from './handshake';
+import { type Handshake, startHandshake } from './handshake';
 
 export interface ToastItem {
   id: number;
@@ -62,29 +58,26 @@ export function usePulseBridge(): PulseBridge {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
 
-  const pushToast = useCallback(
-    (options: PushToastOptions) => {
-      const id = ++toastSeq.current;
-      const item: ToastItem = {
-        id,
-        level: options.level,
-        message: options.message,
-        actionLabel: options.actionLabel,
-        onAction: options.onAction,
-      };
-      setToasts((current) => [...current.slice(-3), item]);
+  const pushToast = useCallback((options: PushToastOptions) => {
+    const id = ++toastSeq.current;
+    const item: ToastItem = {
+      id,
+      level: options.level,
+      message: options.message,
+      actionLabel: options.actionLabel,
+      onAction: options.onAction,
+    };
+    setToasts((current) => [...current.slice(-3), item]);
 
-      const duration = options.durationMs ?? TOAST_DURATION[options.level];
-      if (duration > 0) {
-        const timer = window.setTimeout(() => {
-          toastTimers.current.delete(id);
-          setToasts((current) => current.filter((toast) => toast.id !== id));
-        }, duration);
-        toastTimers.current.set(id, timer);
-      }
-    },
-    [],
-  );
+    const duration = options.durationMs ?? TOAST_DURATION[options.level];
+    if (duration > 0) {
+      const timer = window.setTimeout(() => {
+        toastTimers.current.delete(id);
+        setToasts((current) => current.filter((toast) => toast.id !== id));
+      }, duration);
+      toastTimers.current.set(id, timer);
+    }
+  }, []);
 
   const send = useCallback((command: UiCommand) => {
     postMessage(command);
@@ -174,8 +167,7 @@ export function usePulseBridge(): PulseBridge {
 
     if (
       current &&
-      (current.selection.output !== request.output ||
-        current.selection.layer !== request.layer)
+      (current.selection.output !== request.output || current.selection.layer !== request.layer)
     ) {
       pushToast({
         level: 'warning',

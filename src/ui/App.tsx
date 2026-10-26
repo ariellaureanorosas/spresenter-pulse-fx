@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DEFAULT_PARAMS,
+  describeClamp,
   FREQUENCY_HARD_MAX_HZ,
   FREQUENCY_SAFETY_MAX_HZ,
+  formatHz,
   MODE_LABELS,
+  normalizeParamsWithMeta,
   PARAM_RANGES,
   TARGET_LABELS,
-  describeClamp,
-  formatHz,
-  normalizeParamsWithMeta,
 } from '../shared/params';
 import {
   findOutput,
@@ -45,6 +45,7 @@ import {
   Card,
   ColorField,
   ConfirmDialog,
+  cx,
   ModePicker,
   Notice,
   RangeControl,
@@ -52,10 +53,8 @@ import {
   TargetPicker,
   ToastStack,
   ToggleRow,
-  cx,
 } from './components/ui';
-
-const PLUGIN_VERSION = '1.0.0';
+import { PLUGIN_VERSION } from './version';
 
 const MODE_HINT: Record<PulseMode, string> = {
   hit: 'Cada disparo cria um flash novo, com queda própria. Ideal para acentos e viradas.',
@@ -111,22 +110,16 @@ function BootScreen({ onRetry }: { onRetry: () => void }) {
       <span className="pfx-kicker">Pulse FX</span>
       <h1>Conectando ao palco</h1>
       <p>A lógica do plugin está iniciando e carregando as saídas.</p>
-      <div className="pfx-boot-loader" aria-label="Carregando">
+      <div className="pfx-boot-loader" aria-hidden="true">
         <span />
       </div>
       {slow && (
         <>
           <p className="pfx-boot-slow">
-            O Spresenter ainda não respondeu. O painel continua tentando conectar
-            automaticamente. Se persistir, feche e abra o painel ou confira a instalação do
-            plugin.
+            O Spresenter ainda não respondeu. O painel continua tentando conectar automaticamente.
+            Se persistir, feche e abra o painel ou confira a instalação do plugin.
           </p>
-          <Button
-            size="sm"
-            variant="secondary"
-            icon={<IconRefresh size={14} />}
-            onClick={onRetry}
-          >
+          <Button size="sm" variant="secondary" icon={<IconRefresh size={14} />} onClick={onRetry}>
             Tentar novamente
           </Button>
         </>
@@ -397,11 +390,7 @@ export function App() {
               {layerOptions.map((layer) => {
                 const disabled = isLayerDisabled(currentOutput, layer.index);
                 return (
-                  <option
-                    key={layer.index}
-                    value={String(layer.index)}
-                    disabled={disabled}
-                  >
+                  <option key={layer.index} value={String(layer.index)} disabled={disabled}>
                     {describeLayer(layers, layer.index)}
                     {disabled ? ' (desativada)' : ''}
                   </option>
@@ -445,9 +434,7 @@ export function App() {
               size="sm"
               icon={applied ? <IconClose size={14} /> : <IconMonitor size={14} />}
               disabled={applied ? !ready : !canRun}
-              onClick={() =>
-                send({ type: applied ? 'removeOverlay' : 'applyOverlay' })
-              }
+              onClick={() => send({ type: applied ? 'removeOverlay' : 'applyOverlay' })}
             >
               {applied ? 'Remover da saída' : 'Aplicar na saída'}
             </Button>
@@ -477,12 +464,15 @@ export function App() {
             </Notice>
           )}
 
-          {!layerDisabled && state.layerOccupied === true && !state.layerOccupiedByUs && !applied && (
-            <Notice tone="warning" title="Aplicar substitui o conteúdo atual">
-              O Pulse FX ocupa a camada inteira. O conteúdo anterior não é restaurado ao remover o
-              overlay, por isso o painel pedirá confirmação antes de aplicar.
-            </Notice>
-          )}
+          {!layerDisabled &&
+            state.layerOccupied === true &&
+            !state.layerOccupiedByUs &&
+            !applied && (
+              <Notice tone="warning" title="Aplicar substitui o conteúdo atual">
+                O Pulse FX ocupa a camada inteira. O conteúdo anterior não é restaurado ao remover o
+                overlay, por isso o painel pedirá confirmação antes de aplicar.
+              </Notice>
+            )}
 
           {otherApplied.length > 0 && (
             <div className="pfx-other-applied">
@@ -503,11 +493,7 @@ export function App() {
           )}
         </Card>
 
-        <Card
-          kicker="Movimento"
-          title="Escolha o modo"
-          icon={<IconSparkles size={15} />}
-        >
+        <Card kicker="Movimento" title="Escolha o modo" icon={<IconSparkles size={15} />}>
           <ModePicker
             value={params.mode}
             onChange={(mode) => updateParams({ mode })}
@@ -740,9 +726,7 @@ export function App() {
             <div className="pfx-run-copy">
               <div className="pfx-run-title">
                 <strong>{runTitle}</strong>
-                {selectedEffect?.owner === 'automation' && (
-                  <Badge tone="info">automação</Badge>
-                )}
+                {selectedEffect?.owner === 'automation' && <Badge tone="info">automação</Badge>}
               </div>
               <span>{runDescription}</span>
             </div>
@@ -790,11 +774,7 @@ export function App() {
           </p>
         </Card>
 
-        <Card
-          kicker="Automação"
-          title="Pronto para o palco"
-          icon={<IconAutomation size={15} />}
-        >
+        <Card kicker="Automação" title="Pronto para o palco" icon={<IconAutomation size={15} />}>
           <p className="pfx-copy">
             Três nós ficam em <strong>Automação → Pulse FX</strong> e continuam funcionando com o
             painel fechado:

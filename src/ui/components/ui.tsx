@@ -1,14 +1,14 @@
 import {
-  useEffect,
-  useId,
-  useRef,
   type ButtonHTMLAttributes,
   type CSSProperties,
   type ReactNode,
+  useEffect,
+  useId,
+  useRef,
 } from 'react';
+import type { ConfirmationRequest } from '../../shared/messages';
 import { normalizeColor, toHexColor } from '../../shared/params';
 import type { FxTarget, PulseMode, ToastLevel } from '../../shared/types';
-import type { ConfirmationRequest } from '../../shared/messages';
 import type { ToastItem } from '../bridge';
 import {
   IconAlert,
@@ -351,15 +351,13 @@ export function ColorField({
           <code>{value}</code>
         </div>
       </div>
-      <div className="pfx-color-presets" role="group" aria-label="Cores rápidas">
+      <fieldset className="pfx-color-presets">
+        <legend className="pfx-visually-hidden">Cores rápidas</legend>
         {COLOR_PRESETS.map((preset) => (
           <button
             key={preset}
             type="button"
-            className={cx(
-              'pfx-color-preset',
-              pickerValue === preset.toLowerCase() && 'is-active',
-            )}
+            className={cx('pfx-color-preset', pickerValue === preset.toLowerCase() && 'is-active')}
             style={{ background: preset }}
             disabled={disabled}
             aria-label={`Usar cor ${preset}`}
@@ -368,17 +366,14 @@ export function ColorField({
             onClick={() => onChange(preset)}
           />
         ))}
-      </div>
+      </fieldset>
     </div>
   );
 }
 
 // ── Mode / target ────────────────────────────────────────────
 
-const MODE_META: Record<
-  PulseMode,
-  { label: string; description: string; icon: ReactNode }
-> = {
+const MODE_META: Record<PulseMode, { label: string; description: string; icon: ReactNode }> = {
   hit: {
     label: 'Hit',
     description: 'Um flash e queda',
@@ -406,7 +401,8 @@ export function ModePicker({
   disabled?: boolean;
 }) {
   return (
-    <div className="pfx-mode-grid" role="group" aria-label="Modo do efeito">
+    <fieldset className="pfx-mode-grid">
+      <legend className="pfx-visually-hidden">Modo do efeito</legend>
       {(Object.keys(MODE_META) as PulseMode[]).map((mode) => {
         const meta = MODE_META[mode];
         const active = value === mode;
@@ -425,7 +421,7 @@ export function ModePicker({
           </button>
         );
       })}
-    </div>
+    </fieldset>
   );
 }
 
@@ -445,7 +441,8 @@ export function TargetPicker({
   disabled?: boolean;
 }) {
   return (
-    <div className="pfx-target-grid" role="group" aria-label="Área do efeito">
+    <fieldset className="pfx-target-grid">
+      <legend className="pfx-visually-hidden">Área do efeito</legend>
       {(Object.keys(TARGET_META) as FxTarget[]).map((target) => {
         const meta = TARGET_META[target];
         const active = value === target;
@@ -466,7 +463,7 @@ export function TargetPicker({
           </button>
         );
       })}
-    </div>
+    </fieldset>
   );
 }
 
@@ -512,9 +509,7 @@ export function ConfirmDialog({
       if (event.key !== 'Tab') return;
       const dialog = dialogRef.current;
       if (!dialog) return;
-      const focusable = Array.from(
-        dialog.querySelectorAll<HTMLElement>('button:not([disabled])'),
-      );
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled])'));
       if (focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -537,12 +532,14 @@ export function ConfirmDialog({
   if (!request) return null;
 
   return (
-    <div
-      className="pfx-modal-backdrop"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onCancel();
-      }}
-    >
+    <div className="pfx-modal-backdrop">
+      <button
+        type="button"
+        className="pfx-modal-dismiss"
+        aria-label="Fechar confirmação"
+        tabIndex={-1}
+        onClick={onCancel}
+      />
       <div
         ref={dialogRef}
         className="pfx-modal"
@@ -560,7 +557,12 @@ export function ConfirmDialog({
           <p id={descriptionId}>{request.message}</p>
         </div>
         <div className="pfx-modal-actions">
-          <button ref={cancelRef} type="button" className="pfx-button pfx-button--ghost" onClick={onCancel}>
+          <button
+            ref={cancelRef}
+            type="button"
+            className="pfx-button pfx-button--ghost"
+            onClick={onCancel}
+          >
             Cancelar
           </button>
           <button type="button" className="pfx-button pfx-button--danger" onClick={onConfirm}>

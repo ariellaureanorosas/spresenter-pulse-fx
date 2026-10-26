@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { buildPreviewDocument } from '../../shared/overlay';
 import { MODE_LABELS, TARGET_LABELS } from '../../shared/params';
 import type { FxParams } from '../../shared/types';
@@ -23,7 +23,7 @@ export function Preview({
   const [replay, setReplay] = useState(0);
   const [doc, setDoc] = useState(() => buildPreviewDocument(params, previewToken(0)));
   const firstRender = useRef(true);
-  const signature = JSON.stringify(params);
+  const stageLabelId = useId();
 
   useEffect(() => {
     if (firstRender.current) {
@@ -34,9 +34,8 @@ export function Preview({
       setDoc(buildPreviewDocument(params, previewToken(replay)));
     }, 85);
     return () => window.clearTimeout(timer);
-    // `signature` representa todos os campos visuais; `replay` rearma o hit.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signature, replay]);
+    // `replay` rearma o hit; `params` cobre todos os campos visuais.
+  }, [params, replay]);
 
   const status = active
     ? owner === 'automation'
@@ -51,11 +50,18 @@ export function Preview({
       kicker="Prévia local"
       title="Antes de projetar"
       icon={<IconPlay size={15} />}
-      action={<Badge tone={active ? 'accent' : applied ? 'success' : 'neutral'} dot>{status}</Badge>}
+      action={
+        <Badge tone={active ? 'accent' : applied ? 'success' : 'neutral'} dot>
+          {status}
+        </Badge>
+      }
       className="pfx-preview-card"
       bodyClassName="pfx-preview-body"
     >
-      <div className="pfx-stage" aria-label="Simulação do palco">
+      <figure className="pfx-stage" aria-labelledby={stageLabelId}>
+        <figcaption id={stageLabelId} className="pfx-visually-hidden">
+          Simulação do palco
+        </figcaption>
         <div className="pfx-stage-decor" aria-hidden="true">
           <span className="pfx-stage-grid" />
           <span className="pfx-stage-glow" />
@@ -73,7 +79,7 @@ export function Preview({
           <span />
           {MODE_LABELS[params.mode]}
         </span>
-      </div>
+      </figure>
 
       <div className="pfx-preview-foot">
         <div className="pfx-preview-meta">
