@@ -77,7 +77,6 @@ const outDir = path.join(root, 'release');
 fs.mkdirSync(outDir, { recursive: true });
 const outFile = path.join(outDir, `${id}-${version}.zip`);
 zip.writeZip(outFile);
-
 const sha256 = createHash('sha256').update(fs.readFileSync(outFile)).digest('hex');
 const checksumFile = `${outFile}.sha256`;
 fs.writeFileSync(checksumFile, `${sha256}  ${path.basename(outFile)}\n`, 'utf-8');
@@ -88,3 +87,18 @@ if (written !== sha256) fail('o ZIP mudou depois de calculado o checksum');
 
 ok(`pacote ${path.relative(root, outFile)} (${entries.size} arquivos)`);
 console.log(`SHA-256 ${sha256}`);
+
+// `--folder` gera a mesma árvore em uma pasta limpa, para "Carregar pasta (dev)"
+// no Spresenter. Apontar o instalador para a raiz do repositório copia
+// node_modules/, .git/ e docs/, e a reinstalação seguinte pode falhar com EPERM
+// porque o Windows não consegue remover a pasta antiga.
+if (process.argv.includes('--folder')) {
+  const folderDir = path.join(outDir, `${id}-${version}`);
+  fs.rmSync(folderDir, { recursive: true, force: true });
+  for (const file of files) {
+    const target = path.join(folderDir, file.entryName);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.copyFileSync(file.absolute, target);
+  }
+  ok(`pasta ${path.relative(root, folderDir)} (${files.length} arquivos)`);
+}

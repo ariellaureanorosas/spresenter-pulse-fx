@@ -28,6 +28,7 @@
     "build:ui": "vite build --config vite.ui.config.ts",
     "build": "npm run build:code && npm run build:ui",
     "package": "npm run build && node scripts/package.mjs",
+    "package:folder": "npm run build && node scripts/package.mjs --folder",
     "dev": "concurrently -k \"npm:watch:code\" \"npm:watch:ui\"",
     "watch:code": "vite build --watch --config vite.code.config.ts",
     "watch:ui": "vite build --watch --config vite.ui.config.ts",

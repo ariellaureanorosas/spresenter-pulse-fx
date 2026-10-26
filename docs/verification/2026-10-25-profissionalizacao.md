@@ -50,15 +50,15 @@ scripts de validação, CI e documentação), antes da tag `v1.1.0`.
 |---|---|
 | ZIP | `com.spresenter.pulse-fx-1.1.0.zip` |
 | Conteúdo | `manifest.json` na raiz, `dist/code.js`, `dist/ui/` (HTML + assets), README, licença e avisos |
-| SHA-256 (local, Node 24) | `9736363cf28fefdd74aa0cd9b8361dcfd9f49b9a901bbf9677ded98b7ea42065` |
-| SHA-256 (publicado, Node 22) | `f419bc92cd8041ce02ef25a3f04f6d162f30e6c74c6759c451deeb83a62b1f7c` |
+| SHA-256 publicado | `f419bc92cd8041ce02ef25a3f04f6d162f30e6c74c6759c451deeb83a62b1f7c` |
 | Checksum | `release/com.spresenter.pulse-fx-1.1.0.zip.sha256` (verificado pelo `package` e pelo workflow) |
 
 O ZIP é reproduzível dentro do mesmo ambiente de build: duas execuções de
-`npm run package` no mesmo commit e no mesmo Node geraram o mesmo SHA-256,
-porque `scripts/package.mjs` grava as entradas em ordem estável com timestamp
-fixo. O artefato publicado é o construído no CI (Linux, Node 22), com hash
-próprio — é esse que vale para quem baixa a release.
+`npm run package` no mesmo commit e no mesmo Node geram o mesmo SHA-256, porque
+`scripts/package.mjs` grava as entradas em ordem estável com timestamp fixo.
+Para reproduzir o artefato publicado, parta do commit da tag `v1.1.0` no CI
+(Linux, Node 22); documentação e README podem avançar em `main` sem alterar a
+release já publicada.
 
 ## O que foi validado
 

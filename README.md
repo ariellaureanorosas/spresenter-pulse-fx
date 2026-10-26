@@ -98,11 +98,19 @@ também gera o respectivo `.sha256` para conferência.
 ```bash
 npm install
 npm run dev
+npm run package:folder   # gera release/com.spresenter.pulse-fx-<versão>/
 ```
 
-Em **Configurações → Plugins → Carregar pasta (dev)**, selecione esta pasta.
-Alterações em `src/` são recompiladas para `dist/` pelos watches de código e
-UI. Se preferir um build único:
+Em **Configurações → Plugins → Carregar pasta (dev)**, selecione a pasta gerada
+por `package:folder` — ela contém apenas `manifest.json`, `dist/` e os arquivos
+de licença. Alterações em `src/` são recompiladas para `dist/` pelos watches.
+
+**Não selecione a raiz do repositório.** O instalador copia a pasta inteira:
+`node_modules/`, `.git/` e `docs/` vão junto, e a próxima reinstalação pode
+falhar com `EPERM` porque o Windows não consegue remover a pasta antiga. Se já
+instalou assim, veja [Solução de problemas](#falha-ao-copiar-arquivos--eperm-ao-instalar).
+
+Se preferir um build único:
 
 ```bash
 npm run build
@@ -294,6 +302,18 @@ O que depende do host e não é provado no repositório está detalhado em
 - **Aviso de frequência ajustada** — algum caminho pediu acima do limite; o
   valor aplicado é o mostrado no aviso. Com a trava ligada o máximo é 3 Hz;
   desligada, 20 Hz.
+- **“Falha ao copiar arquivos” / `EPERM` ao instalar** — o Spresenter remove a
+  pasta antiga do plugin antes de copiar a nova, e o Windows recusa a remoção
+  quando a pasta está em uso ou veio de uma instalação feita a partir da raiz do
+  repositório (com `node_modules/` e `.git/`).
+  1. Feche o Spresenter por completo (confira no Gerenciador de Tarefas se
+     sobrou `Spresenter.exe`).
+  2. Apague a pasta antiga:
+     ```powershell
+     Remove-Item "$env:APPDATA\spresenter\plugins\com.spresenter.pulse-fx" -Recurse -Force
+     ```
+  3. Instale o ZIP de novo. Se a remoção também falhar, reinicie o computador e
+     repita antes de abrir o app.
 - **Overlay antigo depois de desinstalar** — a API não expõe unload; limpe a
   camada pelo app ou reinstale e use **Remover da saída**.
 
