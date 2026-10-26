@@ -22,7 +22,10 @@ function geometryCss(params: FxParams): string {
     if (params.thickness <= 0) return 'background:transparent;';
     const inner = Math.max(0, 100 - params.thickness);
     const room = Math.max(0, 100 - inner);
-    const feather = Math.max(0.5, Math.min(room || 0.5, (params.softness / 100) * Math.max(6, room)));
+    const feather = Math.max(
+      0.5,
+      Math.min(room || 0.5, (params.softness / 100) * Math.max(6, room)),
+    );
     const solid = Math.min(100, inner + feather);
     const clear = transparentColor(params.color);
     return [

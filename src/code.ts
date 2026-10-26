@@ -5,6 +5,8 @@
 // overlay no palco, serializa TODAS as mutações (painel, automação e eventos) e
 // persiste as preferências.
 
+import { log } from './logic/logger';
+import { parseUiCommand, type UiCommand } from './shared/messages';
 import { buildOverlayHtml } from './shared/overlay';
 import {
   clampFrequency,
@@ -14,14 +16,12 @@ import {
   normalizeMode,
   normalizeParamsWithMeta,
 } from './shared/params';
-import { parseUiCommand, type UiCommand } from './shared/messages';
 import { createSerialQueue } from './shared/queue';
 import {
   findLayer,
   findOutput,
   isLayerDisabled,
   layerLabel,
-  outputLabel,
   sanitizeLayer,
   sanitizeOutput,
   selectionLabel,
@@ -32,10 +32,10 @@ import {
 import {
   createSettings,
   LEGACY_STORAGE_KEY,
-  parseStoredSettings,
-  serializeSettings,
-  STORAGE_KEY,
   type ParsedSettings,
+  parseStoredSettings,
+  STORAGE_KEY,
+  serializeSettings,
 } from './shared/storage';
 import type {
   ActiveEffect,
@@ -174,7 +174,7 @@ function postToast(level: ToastLevel, message: string): void {
 
 function postError(error: unknown): void {
   const message = errorMessage(error);
-  console.error('[Pulse FX]', message);
+  log.error(message);
   post({ type: 'error', message });
 }
 
@@ -252,10 +252,8 @@ async function probeLayer(target: Selection, force = false): Promise<LayerProbe>
   let probe: LayerProbe;
   try {
     const liveLayers = await spresenter.live.read(target.output);
-    const current = Array.isArray(liveLayers) ? liveLayers[target.layer] ?? null : null;
-    const theme = current?.theme as
-      | { elements?: Array<{ id?: string } | null> }
-      | undefined;
+    const current = Array.isArray(liveLayers) ? (liveLayers[target.layer] ?? null) : null;
+    const theme = current?.theme as { elements?: Array<{ id?: string } | null> } | undefined;
     const elements = Array.isArray(theme?.elements) ? theme?.elements : [];
     const ours =
       !!current &&
@@ -348,11 +346,7 @@ async function ensureStage(
   markApplied(target, owner);
 }
 
-async function setStageHtml(
-  target: Selection,
-  html: string,
-  silent = false,
-): Promise<boolean> {
+async function setStageHtml(target: Selection, html: string, silent = false): Promise<boolean> {
   try {
     await spresenter.live.setElement(target.output, target.layer, ELEMENT_ID, { html });
     return true;
@@ -371,7 +365,10 @@ async function playEffect(
   owner: EffectOwner,
 ): Promise<boolean> {
   const key = targetKey(target.output, target.layer);
-  const normalized = normalizeParamsWithMeta({ ...effectParams, mode }, effectParams.safetyLock).params;
+  const normalized = normalizeParamsWithMeta(
+    { ...effectParams, mode },
+    effectParams.safetyLock,
+  ).params;
   const token = makeRenderToken();
   const html = buildOverlayHtml(normalized, { token });
 
@@ -435,11 +432,7 @@ async function stopRuntime(key: string, clearHtml: boolean): Promise<boolean> {
   cancelTimer(runtime.timer);
   effects.delete(key);
   if (clearHtml) {
-    await setStageHtml(
-      { output: runtime.effect.output, layer: runtime.effect.layer },
-      '',
-      true,
-    );
+    await setStageHtml({ output: runtime.effect.output, layer: runtime.effect.layer }, '', true);
   }
   return true;
 }
@@ -520,7 +513,7 @@ function persistNow(): void {
     try {
       await spresenter.storage.set(STORAGE_KEY, payload);
     } catch (error) {
-      console.error('[Pulse FX] Falha ao salvar preferências:', errorMessage(error));
+      log.error('Falha ao salvar preferências:', errorMessage(error));
     }
   });
 }
@@ -542,9 +535,7 @@ async function emitState(): Promise<void> {
       layer: item.layer,
       effect: effects.get(targetKey(item.output, item.layer))?.effect.mode ?? null,
     }))
-    .sort((a, b) =>
-      a.output === b.output ? a.layer - b.layer : a.output.localeCompare(b.output),
-    );
+    .sort((a, b) => (a.output === b.output ? a.layer - b.layer : a.output.localeCompare(b.output)));
 
   const state: UiState = {
     revision: ++revision,
@@ -600,7 +591,7 @@ async function loadSettings(): Promise<void> {
     }
   } catch (error) {
     bootNotices.push('Não foi possível ler as preferências; usando os padrões.');
-    console.error('[Pulse FX] storage.get:', errorMessage(error));
+    log.error('storage.get:', errorMessage(error));
   }
 
   if (!parsed) {
@@ -613,18 +604,15 @@ async function loadSettings(): Promise<void> {
           bootNotices.push('Preferências de uma versão anterior foram migradas.');
           if (canOverwrite) {
             try {
-              await spresenter.storage.set(
-                STORAGE_KEY,
-                serializeSettings(legacy.settings),
-              );
+              await spresenter.storage.set(STORAGE_KEY, serializeSettings(legacy.settings));
             } catch (error) {
-              console.error('[Pulse FX] migração:', errorMessage(error));
+              log.error('migração:', errorMessage(error));
             }
           }
         }
       }
     } catch (error) {
-      console.error('[Pulse FX] storage.get legado:', errorMessage(error));
+      log.error('storage.get legado:', errorMessage(error));
     }
   }
 
@@ -657,7 +645,7 @@ async function loadSettings(): Promise<void> {
         serializeSettings(createSettings(params, selection, settingsHasSelection)),
       );
     } catch (error) {
-      console.error('[Pulse FX] reescrita de schema:', errorMessage(error));
+      log.error('reescrita de schema:', errorMessage(error));
     }
   }
 }
@@ -714,9 +702,9 @@ async function refreshEnvironment(emit: boolean): Promise<void> {
     outputs[0];
   const foundLayer =
     layers.length > 0
-      ? findLayer(layers, selection.layer) ??
+      ? (findLayer(layers, selection.layer) ??
         findLayer(layers, highestAvailableLayerSafe(foundOutput)) ??
-        layers[0]
+        layers[0])
       : undefined;
   const desiredLayer =
     !settingsHasSelection && layers.length > 0
@@ -732,8 +720,7 @@ async function refreshEnvironment(emit: boolean): Promise<void> {
 
   const keyBefore = targetKey(selection.output, selection.layer);
   const keyAfter = targetKey(nextSelection.output, nextSelection.layer);
-  const moved =
-    keyBefore !== keyAfter || !settingsHasSelection;
+  const moved = keyBefore !== keyAfter || !settingsHasSelection;
   const shouldPersist = !settingsHasSelection || keyBefore !== keyAfter;
 
   if (moved && keyBefore !== keyAfter && applied.has(keyBefore)) {
@@ -744,15 +731,14 @@ async function refreshEnvironment(emit: boolean): Promise<void> {
     invalidateProbe(oldTarget.output, oldTarget.layer);
     if (uiTargetKey === keyBefore) uiTargetKey = null;
 
-    let notice =
-      'A saída ou camada selecionada não está mais disponível; o efeito foi encerrado.';
+    let notice = 'A saída ou camada selecionada não está mais disponível; o efeito foi encerrado.';
     if (oldProbe.status === 'ok' && oldProbe.ours) {
       try {
         await spresenter.live.clear(oldTarget.output, oldTarget.layer);
         notice =
           'A saída ou camada selecionada não está mais disponível; o overlay anterior foi removido.';
       } catch (error) {
-        console.error('[Pulse FX] limpeza de alvo antigo:', errorMessage(error));
+        log.error('limpeza de alvo antigo:', errorMessage(error));
         notice =
           'A saída ou camada selecionada não está mais disponível; o efeito foi encerrado, mas o overlay anterior não pôde ser limpo.';
       }
@@ -812,10 +798,7 @@ function targetIsUsable(target: Selection): boolean {
   return true;
 }
 
-async function ensureTargetForRun(
-  target: Selection,
-  force: boolean,
-): Promise<boolean> {
+async function ensureTargetForRun(target: Selection, force: boolean): Promise<boolean> {
   const key = targetKey(target.output, target.layer);
   if (applied.has(key)) return true;
 
@@ -830,10 +813,7 @@ async function ensureTargetForRun(
   }
 
   if (probe.status === 'error') {
-    postToast(
-      'warning',
-      'Camada não verificada; o overlay será aplicado mesmo assim.',
-    );
+    postToast('warning', 'Camada não verificada; o overlay será aplicado mesmo assim.');
   } else if (probe.occupied && !probe.ours) {
     postToast('warning', 'O conteúdo da camada foi substituído pelo overlay do Pulse FX.');
   }
@@ -1040,8 +1020,7 @@ async function handleSelectTarget(command: {
   }
 
   const oldUiKey = uiTargetKey;
-  const moving =
-    oldUiKey !== null && oldUiKey !== newKey && applied.has(oldUiKey);
+  const moving = oldUiKey !== null && oldUiKey !== newKey && applied.has(oldUiKey);
 
   if (!moving) {
     selection = target;
@@ -1115,10 +1094,7 @@ async function handleSelectTarget(command: {
       )}; a camada antiga não foi limpa.`,
     );
   } else if (oldProbe.status === 'ok' && oldProbe.occupied) {
-    postToast(
-      'warning',
-      'A camada antiga já tinha outro conteúdo; ela não foi limpa.',
-    );
+    postToast('warning', 'A camada antiga já tinha outro conteúdo; ela não foi limpa.');
   }
 
   applied.delete(oldUiKey);
@@ -1198,12 +1174,7 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
     };
 
     if (item.effect.owner === 'ui') {
-      await playEffect(
-        target,
-        item.effect.mode,
-        { ...params, mode: item.effect.mode },
-        'ui',
-      );
+      await playEffect(target, item.effect.mode, { ...params, mode: item.effect.mode }, 'ui');
     } else {
       const clamp = clampFrequency(item.params.frequencyHz, params.safetyLock);
       if (clamp.clamped || clamp.invalid) noteClamp(clamp, 'automation');
@@ -1223,9 +1194,7 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
 }
 
 async function applyParamEffects(previous: FxParams, next: FxParams): Promise<void> {
-  const uiRuntimes = [...effects.entries()].filter(
-    ([, runtime]) => runtime.effect.owner === 'ui',
-  );
+  const uiRuntimes = [...effects.entries()].filter(([, runtime]) => runtime.effect.owner === 'ui');
 
   if (previous.mode !== next.mode) {
     if (next.mode === 'hit' || previous.mode === 'hit') {
@@ -1323,9 +1292,7 @@ function firstDefined(...values: unknown[]): unknown {
 function resolveAutomationTarget(config: AutomationConfig): Selection | null {
   const rawOutput = firstDefined(config.output);
   const output =
-    rawOutput === undefined
-      ? selection.output
-      : sanitizeOutput(rawOutput, selection.output);
+    rawOutput === undefined ? selection.output : sanitizeOutput(rawOutput, selection.output);
 
   const rawLayer = firstDefined(config.layer);
   let layer = selection.layer;
@@ -1339,10 +1306,7 @@ function resolveAutomationTarget(config: AutomationConfig): Selection | null {
   return target;
 }
 
-function automationParams(
-  config: AutomationConfig,
-  mode: PulseMode,
-): FxParams {
+function automationParams(config: AutomationConfig, mode: PulseMode): FxParams {
   // Nós de automação têm parâmetros próprios: campos não informados usam os
   // padrões do plugin, não o estado atual do painel. A trava, porém, é uma
   // configuração global e vale para o painel e para a automação.
@@ -1439,10 +1403,7 @@ async function automationOverlay(config: AutomationConfig): Promise<void> {
     const probe = await probeLayer(target, true);
 
     if (probe.status === 'error') {
-      postToast(
-        'error',
-        'Automação: não foi possível verificar a camada; nada foi apagado.',
-      );
+      postToast('error', 'Automação: não foi possível verificar a camada; nada foi apagado.');
       await emitState();
       return;
     }
@@ -1452,9 +1413,7 @@ async function automationOverlay(config: AutomationConfig): Promise<void> {
       try {
         await spresenter.live.clear(target.output, target.layer);
       } catch (error) {
-        postError(
-          new Error(`Automação: falha ao remover o overlay: ${errorMessage(error)}`),
-        );
+        postError(new Error(`Automação: falha ao remover o overlay: ${errorMessage(error)}`));
         await emitState();
         return;
       }
@@ -1462,10 +1421,7 @@ async function automationOverlay(config: AutomationConfig): Promise<void> {
       if (uiTargetKey === key) uiTargetKey = null;
       invalidateProbe(target.output, target.layer);
       await emitState();
-      postToast(
-        'success',
-        `Automação: overlay removido de ${targetDescription(target)}.`,
-      );
+      postToast('success', `Automação: overlay removido de ${targetDescription(target)}.`);
       return;
     }
 
@@ -1496,14 +1452,14 @@ function registerAutomation(): void {
       icon: 'sparkles',
     });
   } catch (error) {
-    console.error('[Pulse FX] registerCategory:', errorMessage(error));
+    log.error('registerCategory:', errorMessage(error));
   }
 
   const register = (definition: HostAutomationNode): void => {
     try {
       spresenter.automation.registerNode(definition);
     } catch (error) {
-      console.error('[Pulse FX] registerNode:', errorMessage(error));
+      log.error('registerNode:', errorMessage(error));
     }
   };
 
@@ -1750,7 +1706,7 @@ function setupUiBridge(): void {
     if (!command) return;
     if (!uiBridgeSeen) {
       uiBridgeSeen = true;
-      console.info('[Pulse FX] Painel conectado à lógica.');
+      log.info('Painel conectado à lógica.');
     }
     void queue.run(async () => {
       try {
@@ -1781,7 +1737,7 @@ function registerEvents(): void {
     spresenter.on('live', scheduleRefresh);
     spresenter.on('state', scheduleRefresh);
   } catch (error) {
-    console.error('[Pulse FX] eventos:', errorMessage(error));
+    log.error('eventos:', errorMessage(error));
   }
 }
 
@@ -1821,7 +1777,4 @@ setupUiBridge();
 registerEvents();
 void ensureReady();
 
-// eslint-disable-next-line no-console
-console.log(
-  `Pulse FX carregado (trava ≤ 3 Hz, teto técnico ${formatHz(20)}).`,
-);
+log.info(`Pulse FX carregado (trava ≤ 3 Hz, teto técnico ${formatHz(20)}).`);

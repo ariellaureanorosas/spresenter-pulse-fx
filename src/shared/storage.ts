@@ -69,9 +69,7 @@ function parseLegacy(raw: Record<string, unknown>): ParsedSettings {
   const config = isRecord(raw.config) ? raw.config : raw;
   const safety = config.safety !== false && raw.safety !== false;
   const target =
-    config.target ??
-    (config.fullscreen === true ? 'full' : undefined) ??
-    (raw.target as unknown);
+    config.target ?? (config.fullscreen === true ? 'full' : undefined) ?? (raw.target as unknown);
 
   const paramsRaw: Record<string, unknown> = {
     mode: config.mode,
@@ -191,7 +189,9 @@ export function parseStoredSettings(
   }
 
   return {
-    ...defaultResult('As preferências salvas não tinham um formato reconhecido; usando os padrões.'),
+    ...defaultResult(
+      'As preferências salvas não tinham um formato reconhecido; usando os padrões.',
+    ),
     repaired: true,
   };
 }

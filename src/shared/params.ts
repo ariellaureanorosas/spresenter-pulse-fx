@@ -1,11 +1,4 @@
-import type {
-  ClampCause,
-  ClampInfo,
-  FrequencyClamp,
-  FxParams,
-  FxTarget,
-  PulseMode,
-} from './types';
+import type { ClampCause, ClampInfo, FrequencyClamp, FxParams, FxTarget, PulseMode } from './types';
 
 export const FREQUENCY_MIN_HZ = 0.5;
 export const FREQUENCY_SAFETY_MAX_HZ = 3;
@@ -279,14 +272,9 @@ export interface NormalizedParams {
  * Normaliza qualquer entrada (UI, storage, automação) para um `FxParams`
  * completo e seguro. A frequência resultante já passou por `clampFrequency`.
  */
-export function normalizeParamsWithMeta(
-  raw: unknown,
-  safetyOverride?: boolean,
-): NormalizedParams {
+export function normalizeParamsWithMeta(raw: unknown, safetyOverride?: boolean): NormalizedParams {
   const record =
-    raw && typeof raw === 'object' && !Array.isArray(raw)
-      ? (raw as Record<string, unknown>)
-      : {};
+    raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
 
   const safetyLock =
     typeof safetyOverride === 'boolean' ? safetyOverride : record.safetyLock !== false;

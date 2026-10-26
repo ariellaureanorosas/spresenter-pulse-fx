@@ -43,10 +43,7 @@ export function isLayerDisabled(output: OutputDto | undefined, layer: number): b
  * A ordem documentada das camadas é a da lista do app: índice maior = mais
  * acima. A camada "mais alta" é o maior índice não desativado na saída.
  */
-export function highestAvailableLayer(
-  output: OutputDto | undefined,
-  layers: LayerDto[],
-): number {
+export function highestAvailableLayer(output: OutputDto | undefined, layers: LayerDto[]): number {
   const disabled = new Set(output?.disabledLayers ?? []);
   const indexes = layers
     .map((layer) => layer.index)
@@ -57,10 +54,7 @@ export function highestAvailableLayer(
   return 0;
 }
 
-export function findOutput(
-  outputs: OutputDto[],
-  output: string,
-): OutputDto | undefined {
+export function findOutput(outputs: OutputDto[], output: string): OutputDto | undefined {
   return outputs.find((item) => String(item.index) === output);
 }
 
@@ -91,7 +85,8 @@ export function resolveSelection(
     reason = 'output-missing';
   }
 
-  const outputIndex = String(output!.index);
+  const resolvedOutput = output ?? fallbackOutput;
+  const outputIndex = String(resolvedOutput.index);
   const layerIndexes = layers
     .map((item) => item.index)
     .filter((index) => Number.isInteger(index) && index >= 0);
@@ -106,12 +101,12 @@ export function resolveSelection(
   }
 
   if (reason === 'initial') {
-    layer = highestAvailableLayer(output, layers);
+    layer = highestAvailableLayer(resolvedOutput, layers);
   } else if (!layerIndexes.includes(layer)) {
-    layer = highestAvailableLayer(output, layers);
+    layer = highestAvailableLayer(resolvedOutput, layers);
     reason = reason ?? 'layer-missing';
-  } else if (isLayerDisabled(output, layer)) {
-    const replacement = highestAvailableLayer(output, layers);
+  } else if (isLayerDisabled(resolvedOutput, layer)) {
+    const replacement = highestAvailableLayer(resolvedOutput, layers);
     if (replacement !== layer) {
       layer = replacement;
       reason = reason ?? 'layer-disabled';
@@ -134,7 +129,8 @@ export function outputLabel(outputs: OutputDto[], output: string): string {
 
 export function layerLabel(layers: LayerDto[], layer: number): string {
   const found = findLayer(layers, layer);
-  if (found && found.name && found.name.trim()) return found.name.trim();
+  const name = found?.name?.trim();
+  if (name) return name;
   return `Camada ${layer}`;
 }
 
