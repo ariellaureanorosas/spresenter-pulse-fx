@@ -73,6 +73,37 @@ release já publicada.
 - Ausência de vulnerabilidades nas dependências de runtime
   (`npm audit --omit=dev --audit-level=high`: 0).
 
+## Falha de reinstalação (`EPERM`) — reproduzida e resolvida
+
+Ao instalar o ZIP 1.1.0 sobre uma instalação antiga, o Spresenter falhou com
+`Falha ao copiar arquivos: EPERM ... plugins\com.spresenter.pulse-fx`. O log
+`main-process.log` mostra a origem:
+
+```
+[plugins] falha ao remover pasta de com.spresenter.pulse-fx Error: EPERM
+    at Object.rmSync (node:fs)
+    at Object.uninstall (...app.asar\dist\main\main.js)
+```
+
+O instalador chama `fs.rmSync` na pasta anterior antes de copiar; o Windows
+recusa a remoção com o app aberto. A pasta instalada era a **0.3.0 vinda da raiz
+do repositório** (continha `.git/`, `.github/` e `node_modules/`, 13.895 itens),
+criada pela instrução antiga de dev install, e estava registrada como
+`dev reload` no log.
+
+Procedimento validado nesta máquina (Windows, Spresenter 0.3.50):
+
+1. fechar todos os processos `Spresenter` (eram 10 abertos);
+2. `Remove-Item "$env:APPDATA\spresenter\plugins\com.spresenter.pulse-fx" -Recurse -Force`;
+3. conferir que `config.json` não guarda entrada do plugin e que nenhum arquivo
+   do perfil do app referencia o id.
+
+Resultado: remoção concluída sem `EPERM`, pasta ausente, sem referências
+residuais. Este é o caminho documentado no README
+([Solução de problemas](../../README.md#solução-de-problemas)); `npm run
+package:folder` evita que o problema volte, gerando uma pasta com apenas
+`manifest.json`, `dist/` e os arquivos de licença.
+
 ## CI e release reais
 
 | Evento | Resultado |
