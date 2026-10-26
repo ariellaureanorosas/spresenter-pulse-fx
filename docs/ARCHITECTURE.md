@@ -252,7 +252,8 @@ pela lógica quanto pelo painel; por isso tem a meta de cobertura mais alta.
 1. `npm run verify` — formatação, lint, tipos, testes com cobertura, build,
    validação de manifesto/SDK e empacotamento.
 2. Para mudanças visuais: comparar a prévia do painel com a saída real em
-   **Spresenter 0.3.50** e registrar em `docs/verification/`.
+   **Spresenter 0.3.50**; se a checagem for manual, registre conforme
+   [docs/verification/README.md](verification/README.md).
 3. Para mudanças de protocolo: atualizar [PROTOCOL.md](PROTOCOL.md) e os testes
    de `messages`.
 4. Para mudanças de comportamento do host: atualizar [COMPATIBILITY.md](COMPATIBILITY.md).

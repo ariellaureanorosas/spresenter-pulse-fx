@@ -1,27 +1,27 @@
 # Template de verificação manual
 
-Copie este arquivo para `docs/verification/AAAA-MM-DD-<contexto>.md` ao validar
-uma mudança que depende do Spresenter ou de uma saída real.
+Use apenas quando houver evidência que o gate automatizado não produz — veja a
+regra em [README.md](README.md). Mudança coberta por teste não gera arquivo.
 
 **Plugin:** versão
 **SDK:** versão
-**App:** versão
-**Ambiente:** sistema, saída e camada usadas
+**App:** versão do Spresenter (e navegador, se relevante)
+**Ambiente:** sistema e saída/camada usadas
 
 ## O que foi verificado
 
 | Cenário | Passos | Resultado | Evidência |
 |---|---|---|---|
-| | | | |
+| | | | trecho de log, captura ou hash |
 
 ## Regressões observadas
 
-- 
+-
 
 ## Pendências
 
-- 
+- (o que continua sem prova; mantenha também na tabela do `README.md`)
 
 ## Observações
 
-- Logs relevantes do app (sem dados sensíveis):
+- Trechos relevantes do `main-process.log`, sem dados sensíveis.

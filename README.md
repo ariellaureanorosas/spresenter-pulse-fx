@@ -283,7 +283,7 @@ O mapa de módulos detalhado e as decisões de arquitetura estão em
 - [Compatibilidade e limitações](docs/COMPATIBILITY.md)
 - [Processo de release](docs/RELEASING.md)
 - [Configuração do GitHub](docs/GITHUB-SETTINGS.md)
-- [Verificação manual](docs/verification/)
+- [Verificação manual](docs/verification/README.md)
 - [Suporte](SUPPORT.md) · [Contribuição](CONTRIBUTING.md) · [Segurança](SECURITY.md)
 
 ## Limitações

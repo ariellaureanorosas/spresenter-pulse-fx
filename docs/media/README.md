@@ -19,7 +19,8 @@ mídia é parte da documentação.
 - Não inclua letras de músicas, nomes de pessoas ou conteúdo de terceiros.
 - Prefira 30 fps e paleta reduzida para manter o arquivo pequeno.
 - Nomeie em minúsculas, sem espaços.
-- Ao trocar uma mídia, atualize a data em `docs/verification/` se a mudança for
+- Ao trocar uma mídia, atualize a linha correspondente em
+  [docs/verification/README.md](../verification/README.md) se a mudança for
   visual.
 
 Enquanto os arquivos não existirem, o README não deve referenciá-los.

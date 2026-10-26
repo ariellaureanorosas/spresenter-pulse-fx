@@ -78,6 +78,18 @@ Use **Actions → Release → Run workflow** informando uma tag existente e
 release nem altera assets: ele imprime as notas e sobe um artefato de workflow
 `release-dry-run`.
 
+## Verificação manual
+
+- O gate automatizado cobre o comportamento interno; o que depende do app
+  (projeção, handshake, instalador, navegador embarcado) só uma sessão real
+  prova.
+- Registre em `docs/verification/` **apenas** quando houver evidência que o gate
+  não produz: sessão no app, trecho de log, captura. Mudança coberta por teste
+  fica no `CHANGELOG.md` e no CI.
+- Cada registro entra na tabela de
+  [docs/verification/README.md](verification/README.md); pendências abertas
+  vivem lá, não espalhadas em arquivos por versão.
+
 ## Regras
 
 - **Nunca** sobrescreva uma release publicada. Se o artefato estiver errado,

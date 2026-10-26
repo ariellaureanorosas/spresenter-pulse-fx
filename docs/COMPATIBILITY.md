@@ -16,7 +16,8 @@
 O app de referência é 0.3.50, os templates oficiais embutidos no app usam
 `minAppVersion` igual à versão do app e o SDK vendorizado é 0.5.0. Não há
 evidência de que o SDK 0.5.0 funcione em 0.3.0; por isso o plugin não promete
-essa combinação. Ver `docs/verification/2026-10-25-baseline.md`.
+essa combinação. A decisão está registrada em
+[docs/verification/README.md](verification/README.md).
 
 Quem estiver em uma versão anterior do Spresenter deve permanecer no Pulse FX
 1.0.0, que declara `minAppVersion: 0.3.0`.
@@ -63,8 +64,8 @@ O overlay usa apenas recursos amplamente suportados:
 - unidades relativas (`%`, `vmin`).
 
 Não há `backdrop-filter`, `mask`, `@property`, Houdini ou JavaScript de
-animação. Se o host atualizar o Chromium embarcado, a recomendação é repetir a
-verificação manual em `docs/verification/`.
+animação. Se o host atualizar o Chromium embarcado, repita a verificação manual
+seguindo [docs/verification/README.md](verification/README.md).
 
 ## Limitações conhecidas
 
@@ -79,5 +80,6 @@ verificação manual em `docs/verification/`.
 
 ## Histórico de verificação
 
+- [Índice e pendências](verification/README.md)
 - [2026-10-25 — Spresenter 0.3.50](verification/2026-10-25-spresenter-0.3.50.md)
-- [2026-10-25 — baseline](verification/2026-10-25-baseline.md)
+- [2026-10-25 — rodada de profissionalização](verification/2026-10-25-profissionalizacao.md)

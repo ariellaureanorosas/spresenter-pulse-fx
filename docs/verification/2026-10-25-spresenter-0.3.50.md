@@ -16,7 +16,8 @@
 ## Efeitos
 
 - **Disparar hit** em uma camada livre produziu o flash na saída.
-- A prévia local usa o mesmo HTML do palco e rearma o hit pelo botão **Repetir**.
+- A prévia local usa a mesma geometria e os mesmos `@keyframes` da saída e
+  rearma o hit pelo botão **Repetir**.
 
 ## Ainda dependem do host/editor
 

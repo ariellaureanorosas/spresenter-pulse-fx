@@ -19,30 +19,8 @@ scripts de validação, CI e documentação), antes da tag `v1.1.0`.
 | Testing Library + jsdom | 16.x / 30.x | testes de UI |
 | Vite | 8.3.5 | build das duas threads |
 
-## Comandos e resultados
-
-| Comando | Resultado |
-|---|---|
-| `npm run check` | 62 arquivos verificados, 0 erros |
-| `npm run format:check` | sem diferenças |
-| `npm run lint` | sem avisos |
-| `npm run typecheck` | sem erros |
-| `npm test` | 15 arquivos, **127 testes**, todos verdes |
-| `npm run test:coverage` | 4,47 s; limites globais e de `src/shared/` atendidos |
-| `npm run verify:sdk` | `@spresenter/plugin-sdk@0.5.0` íntegro (`7c0ee0b0c4e5…`) |
-| `npm run verify:manifest` | válido — `com.spresenter.pulse-fx 1.1.0`, Spresenter ≥ 0.3.50, SDK 0.5.0 |
-| `npm run version:check` | versão sincronizada em manifest/package/lock |
-| `npm run verify` | gate completo verde |
-| `npm run package` | `release/com.spresenter.pulse-fx-1.1.0.zip` (8 arquivos) |
-
-## Cobertura
-
-| Escopo | Stmts | Branch | Funcs | Lines |
-|---|---:|---:|---:|---:|
-| Global | 80,97% | 74,08% | 81,87% | 83,27% |
-| `src/code.ts` | 78,37% | 69,27% | 95,78% | 80,72% |
-| `src/shared/` | 93,81% | 84,69% | 100% | 95,83% |
-| `src/ui/` | 80,07% | 73,70% | 61,33% | 83,18% |
+O resultado de cada comando naquela rodada está no CI da tag `v1.1.0` e na seção
+correspondente do [CHANGELOG](../../CHANGELOG.md); não é repetido aqui.
 
 ## Artefato
 
@@ -130,5 +108,4 @@ package:folder` evita que o problema volte, gerando uma pasta com apenas
    `targets.png` conforme `docs/media/README.md` e descomentar o bloco no README.
 4. **Verificação visual no app**: a rodada mudou semântica/estrutura de alguns
    elementos do painel (`figure/figcaption` na prévia, scrim do modal, loader de
-   boot) sem intenção de alterar o visual. Falta confirmar em uma saída real do
-   Spresenter 0.3.50.
+   boot) sem intenção de alterar o visual. Acompanhe em [README.md](README.md).
