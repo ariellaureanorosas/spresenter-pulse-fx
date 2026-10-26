@@ -3,48 +3,74 @@
 // plus the built dist/ (and documentation/license/notices when present). Run
 // `npm run package` (it builds first, then zips and writes a SHA-256 checksum).
 // Cross-platform via adm-zip; no system `zip`.
+//
+// O ZIP é reproduzível: as entradas entram em ordem estável e com timestamp
+// fixo. Dois builds do mesmo código geram o mesmo SHA-256 no mesmo Node, o que
+// torna o checksum publicado verificável por quem reconstrói o pacote.
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import AdmZip from 'adm-zip';
+import { assertVersionsSynced, fail, ok, readJson, root } from './lib.mjs';
+import { validateManifest } from './validate-manifest.mjs';
+import { verifySdk } from './verify-sdk.mjs';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const manifestPath = path.join(root, 'manifest.json');
-const packagePath = path.join(root, 'package.json');
+validateManifest();
+verifySdk();
+const version = assertVersionsSynced();
 
-if (!fs.existsSync(manifestPath)) {
-  console.error('manifest.json not found in', root);
-  process.exit(1);
-}
+const manifest = readJson('manifest.json');
+const { id, main, ui } = manifest;
 
-const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
-const { id, version } = manifest;
-if (!id || !version) {
-  console.error('manifest.json must define "id" and "version".');
-  process.exit(1);
-}
-if (packageJson.version !== version) {
-  console.error(
-    `Version mismatch: manifest.json has ${version}, package.json has ${packageJson.version}.`,
-  );
-  process.exit(1);
-}
+// Timestamp fixo (dentro da faixa do formato DOS, 1980–2107). Alterar este valor
+// muda o checksum de todos os pacotes; não é para ser tocado sem motivo.
+const FIXED_TIME = new Date(Date.UTC(2020, 0, 1, 0, 0, 0));
 
 // dist/ must exist. `npm run package` builds first, but guard for a bare run.
 const distDir = path.join(root, 'dist');
 if (!fs.existsSync(distDir)) {
-  console.error('dist/ not found — run `npm run build` first.');
-  process.exit(1);
+  fail('dist/ não encontrado — rode `npm run build` antes.');
+}
+
+/** Arquivos de um diretório em ordem estável, com caminho POSIX relativo. */
+function collectFiles(dir, prefix) {
+  const files = [];
+  for (const name of fs.readdirSync(dir).sort()) {
+    const absolute = path.join(dir, name);
+    const entryName = `${prefix}/${name}`;
+    if (fs.statSync(absolute).isDirectory()) {
+      files.push(...collectFiles(absolute, entryName));
+    } else {
+      files.push({ absolute, entryName });
+    }
+  }
+  return files;
+}
+
+const files = [
+  { absolute: path.join(root, 'manifest.json'), entryName: 'manifest.json' },
+  ...collectFiles(distDir, 'dist'),
+];
+for (const extra of ['README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md']) {
+  const absolute = path.join(root, extra);
+  if (fs.existsSync(absolute)) files.push({ absolute, entryName: extra });
 }
 
 const zip = new AdmZip();
-zip.addLocalFile(manifestPath); // manifest.json at the archive root
-zip.addLocalFolder(distDir, 'dist'); // built code.js + ui/
-for (const extra of ['README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md']) {
-  const p = path.join(root, extra);
-  if (fs.existsSync(p)) zip.addLocalFile(p);
+for (const file of files) {
+  zip.addFile(file.entryName, fs.readFileSync(file.absolute));
+}
+
+// Sem isso, cada build grava a hora corrente e o SHA-256 muda sem o código mudar.
+for (const entry of zip.getEntries()) {
+  entry.header.time = FIXED_TIME;
+}
+
+// O instalador depende desses caminhos; falhar aqui evita publicar um ZIP que
+// instala e não abre.
+const entries = new Set(zip.getEntries().map((entry) => entry.entryName));
+for (const required of ['manifest.json', main, ui]) {
+  if (!entries.has(required)) fail(`ZIP sem o arquivo obrigatório: ${required}`);
 }
 
 const outDir = path.join(root, 'release');
@@ -56,5 +82,9 @@ const sha256 = createHash('sha256').update(fs.readFileSync(outFile)).digest('hex
 const checksumFile = `${outFile}.sha256`;
 fs.writeFileSync(checksumFile, `${sha256}  ${path.basename(outFile)}\n`, 'utf-8');
 
-console.log(`Packaged ${path.relative(root, outFile)}`);
+// Relê o ZIP gravado: garante que o checksum publicado descreve o arquivo final.
+const written = createHash('sha256').update(fs.readFileSync(outFile)).digest('hex');
+if (written !== sha256) fail('o ZIP mudou depois de calculado o checksum');
+
+ok(`pacote ${path.relative(root, outFile)} (${entries.size} arquivos)`);
 console.log(`SHA-256 ${sha256}`);

@@ -9,3 +9,10 @@
 *.ico binary
 *.woff binary
 *.woff2 binary
+
+# SDK vendorizado: não é código nosso, não entra nas estatísticas do GitHub.
+sdk/*.tgz linguist-vendored
+
+# Mídia e checksums.
+docs/media/* binary
+*.sha256 text eol=lf

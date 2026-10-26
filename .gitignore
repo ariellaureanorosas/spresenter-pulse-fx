@@ -2,6 +2,9 @@
 node_modules/
 dist/
 release/
+coverage/
+playwright-report/
+test-results/
 
 # Ferramentas / SO
 .vite/
@@ -18,5 +21,7 @@ npm-debug.log*
 .env.*.local
 
 # Editores
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/

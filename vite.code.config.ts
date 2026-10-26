@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
+import { defineConfig } from 'vite';
 
 // Logic thread build. Produces a single IIFE (no DOM) that the host evaluates
 // inside a restricted vm context, where the `spresenter` global is injected.
