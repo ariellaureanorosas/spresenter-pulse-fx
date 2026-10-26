@@ -3,6 +3,7 @@
 import {
   assertVersionsSynced,
   fail,
+  formatJsonFiles,
   ok,
   readJson,
   runAsScript,
@@ -43,6 +44,7 @@ export function setVersion(next) {
   writeJson('manifest.json', manifest);
   writeJson('package.json', pkg);
   writeJson('package-lock.json', lock);
+  formatJsonFiles(['manifest.json', 'package.json']);
 
   const written = assertVersionsSynced();
   ok(`versão ${current} → ${written} em manifest.json, package.json e package-lock.json`);

@@ -1,5 +1,6 @@
 // Utilitários compartilhados pelos scripts de verificação/empacotamento.
 // Sem dependências: roda em Node 22+ puro.
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,6 +30,23 @@ export function readJson(relativePath) {
 
 export function writeJson(relativePath, value) {
   fs.writeFileSync(path.join(root, relativePath), `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+}
+
+/**
+ * Reescrever um JSON com `JSON.stringify` não segue o formato do Biome (arrays
+ * curtos viram várias linhas e o gate quebra depois do bump). Formata só os
+ * arquivos tocados, se o Biome estiver instalado.
+ */
+export function formatJsonFiles(relativePaths) {
+  const biome = path.join(root, 'node_modules', '@biomejs', 'biome', 'bin', 'biome');
+  if (!fs.existsSync(biome)) return;
+  const result = spawnSync(process.execPath, [biome, 'format', '--write', ...relativePaths], {
+    cwd: root,
+    stdio: 'ignore',
+  });
+  if (result.status !== 0) {
+    fail(`não foi possível formatar ${relativePaths.join(', ')} — rode \`npm run check:fix\`.`);
+  }
 }
 
 /** Garante manifest.json === package.json === package-lock.json. */
