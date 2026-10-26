@@ -1,7 +1,7 @@
 {
   "id": "com.spresenter.pulse-fx",
   "name": "Pulse FX",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Efeitos de luz Hit, Strobe e Pulse com sobreposição em tela cheia, vinheta ou moldura, trava de segurança e automação.",
   "author": "Ariel Laureano Rosas",
   "minAppVersion": "0.3.50",

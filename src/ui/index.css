@@ -613,14 +613,12 @@ fieldset {
   will-change: opacity;
 }
 
+/* O palco inteiro reinicia a animação. Sem dica sobreposta: o botão Repetir
+   do rodapé é a referência visual. */
 .pfx-stage-replay {
   position: absolute;
   inset: 0;
   z-index: 3;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding: 7px;
   border: 0;
   border-radius: inherit;
   background: transparent;
@@ -637,26 +635,6 @@ fieldset {
 .pfx-stage-replay:focus-visible {
   outline: 2px solid rgba(198, 255, 74, 0.75);
   outline-offset: -2px;
-}
-
-.pfx-stage-replay-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 7px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  background: rgba(5, 8, 12, 0.72);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.pfx-stage-replay:hover .pfx-stage-replay-hint,
-.pfx-stage-replay:focus-visible .pfx-stage-replay-hint {
-  opacity: 1;
 }
 
 .pfx-stage-live {

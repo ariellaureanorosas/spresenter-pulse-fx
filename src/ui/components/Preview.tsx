@@ -60,18 +60,14 @@ export function Preview({
             {MODE_LABELS[params.mode]}
           </span>
         </div>
+        {/* O palco inteiro é clicável; a dica visual fica no botão do rodapé. */}
         <button
           type="button"
           className="pfx-stage-replay"
           onClick={() => setReplay((value) => value + 1)}
           aria-label="Repetir a prévia"
           title="Clique para repetir a prévia"
-        >
-          <span className="pfx-stage-replay-hint" aria-hidden="true">
-            <IconRefresh size={11} />
-            Repetir
-          </span>
-        </button>
+        />
       </figure>
 
       <div className="pfx-preview-foot">

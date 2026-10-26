@@ -66,6 +66,16 @@ describe('prévia', () => {
     expect(sheetId(container)).not.toBe(before);
   });
 
+  it('não repete a dica Repetir sobre o palco', () => {
+    const { container } = renderPreview();
+
+    const stageButton = screen.getByRole('button', { name: 'Repetir a prévia' });
+    expect(stageButton).toBeEmptyDOMElement();
+    expect(container.querySelector('.pfx-stage-replay-hint')).not.toBeInTheDocument();
+    // A única referência visual é o botão do rodapé.
+    expect(screen.getAllByText('Repetir')).toHaveLength(1);
+  });
+
   it('aplica a geometria do alvo escolhido', () => {
     const { container, rerender } = renderPreview({ target: 'vignette' });
     expect(container.querySelector('style')?.textContent).toContain('radial-gradient');

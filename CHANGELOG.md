@@ -5,6 +5,17 @@ Todas as mudanças notáveis deste projeto são documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.2.1] - 2026-10-26
+
+Ajuste visual na prévia, sem mudança de comportamento.
+
+### Alterado
+
+- Removida a dica "Repetir" que aparecia sobre o palco ao passar o mouse: ela
+  duplicava o botão **Repetir** do rodapé. O palco continua reiniciando a
+  animação com um clique, e o botão que cobre a área mantém nome acessível e
+  anel de foco para teclado.
+
 ## [1.2.0] - 2026-10-26
 
 Correção do palco da prévia: ele aparecia branco e não reagia ao clique.
@@ -122,6 +133,7 @@ Primeira versão instalável do Pulse FX.
 - Documentação de arquitetura, decisões técnicas e registro da verificação no
   app real (Spresenter 0.3.50).
 
+[1.2.1]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.2.1
 [1.2.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.2.0
 [1.1.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.1.0
 [1.0.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.0.0
