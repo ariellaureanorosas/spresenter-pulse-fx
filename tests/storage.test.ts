@@ -3,9 +3,9 @@ import { DEFAULT_PARAMS } from '../src/shared/params';
 import {
   createSettings,
   parseStoredSettings,
-  serializeSettings,
   SETTINGS_SCHEMA_VERSION,
   STORAGE_KEY,
+  serializeSettings,
 } from '../src/shared/storage';
 
 describe('parseStoredSettings', () => {

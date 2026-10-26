@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  clampFrequency,
   DEFAULT_PARAMS,
+  describeClamp,
   FREQUENCY_HARD_MAX_HZ,
   FREQUENCY_SAFETY_MAX_HZ,
-  clampFrequency,
-  describeClamp,
   formatHz,
   normalizeColor,
   normalizeMode,

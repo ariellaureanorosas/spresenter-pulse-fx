@@ -47,10 +47,7 @@ describe('buildOverlayHtml', () => {
   });
 
   it('Pulse completa um ciclo por período, sem alternate', () => {
-    const html = buildOverlayHtml(
-      { ...BASE, mode: 'pulse', frequencyHz: 2 },
-      { token: 'pulse' },
-    );
+    const html = buildOverlayHtml({ ...BASE, mode: 'pulse', frequencyHz: 2 }, { token: 'pulse' });
     expect(html).toContain('500ms ease-in-out');
     expect(html).toContain('0%{opacity:0;}50%{opacity:0.8;}100%{opacity:0;}');
     expect(html).not.toContain('alternate');
@@ -98,14 +95,8 @@ describe('buildOverlayHtml', () => {
 
   it('aplica as três geometrias', () => {
     const full = buildOverlayHtml({ ...BASE, mode: 'hit', target: 'full' }, { token: 'f' });
-    const vignette = buildOverlayHtml(
-      { ...BASE, mode: 'hit', target: 'vignette' },
-      { token: 'v' },
-    );
-    const frame = buildOverlayHtml(
-      { ...BASE, mode: 'hit', target: 'frame' },
-      { token: 'm' },
-    );
+    const vignette = buildOverlayHtml({ ...BASE, mode: 'hit', target: 'vignette' }, { token: 'v' });
+    const frame = buildOverlayHtml({ ...BASE, mode: 'hit', target: 'frame' }, { token: 'm' });
 
     expect(full).toContain('background:#35e0ff;');
     expect(vignette).toContain('background-image:radial-gradient');

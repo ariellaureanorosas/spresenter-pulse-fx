@@ -1,17 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import {
-  isLogicEvent,
-  makeToastEvent,
-  parseUiCommand,
-} from '../src/shared/messages';
+import { isLogicEvent, makeToastEvent, parseUiCommand } from '../src/shared/messages';
 
 describe('parseUiCommand', () => {
   it('aceita comandos válidos', () => {
     expect(parseUiCommand({ type: 'requestState' })).toEqual({ type: 'requestState' });
     expect(parseUiCommand({ type: 'stopAll' })).toEqual({ type: 'stopAll' });
-    expect(
-      parseUiCommand({ type: 'selectTarget', output: 1, layer: '4', force: true }),
-    ).toEqual({ type: 'selectTarget', output: '1', layer: 4, force: true });
+    expect(parseUiCommand({ type: 'selectTarget', output: 1, layer: '4', force: true })).toEqual({
+      type: 'selectTarget',
+      output: '1',
+      layer: 4,
+      force: true,
+    });
     expect(parseUiCommand({ type: 'fire' })).toEqual({ type: 'fire', force: false });
   });
 
@@ -42,9 +41,7 @@ describe('isLogicEvent', () => {
         request: { action: 'apply', message: 'confirmar' },
       }),
     ).toBe(true);
-    expect(
-      isLogicEvent({ type: 'outputsLayers', outputs: [], layers: [] }),
-    ).toBe(true);
+    expect(isLogicEvent({ type: 'outputsLayers', outputs: [], layers: [] })).toBe(true);
   });
 
   it('descarta eventos desconhecidos ou malformados', () => {
