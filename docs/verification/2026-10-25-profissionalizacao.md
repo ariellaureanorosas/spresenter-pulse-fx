@@ -50,13 +50,15 @@ scripts de validação, CI e documentação), antes da tag `v1.1.0`.
 |---|---|
 | ZIP | `com.spresenter.pulse-fx-1.1.0.zip` |
 | Conteúdo | `manifest.json` na raiz, `dist/code.js`, `dist/ui/` (HTML + assets), README, licença e avisos |
-| SHA-256 | `9736363cf28fefdd74aa0cd9b8361dcfd9f49b9a901bbf9677ded98b7ea42065` |
-| Checksum | `release/com.spresenter.pulse-fx-1.1.0.zip.sha256` (verificado pelo `package`) |
+| SHA-256 (local, Node 24) | `9736363cf28fefdd74aa0cd9b8361dcfd9f49b9a901bbf9677ded98b7ea42065` |
+| SHA-256 (publicado, Node 22) | `f419bc92cd8041ce02ef25a3f04f6d162f30e6c74c6759c451deeb83a62b1f7c` |
+| Checksum | `release/com.spresenter.pulse-fx-1.1.0.zip.sha256` (verificado pelo `package` e pelo workflow) |
 
-O ZIP é reproduzível: duas execuções de `npm run package` no mesmo commit
-geraram o mesmo SHA-256, porque `scripts/package.mjs` grava as entradas em ordem
-estável com timestamp fixo. O hash muda apenas se o conteúdo empacotado mudar
-(ou se o Node/zlib for outro).
+O ZIP é reproduzível dentro da mesma versão de Node: duas execuções de
+`npm run package` no mesmo commit geraram o mesmo SHA-256, porque
+`scripts/package.mjs` grava as entradas em ordem estável com timestamp fixo. O
+build do CI (Node 22) tem hash próprio, publicado junto do `.sha256` — é esse que
+vale para quem baixa a release.
 
 ## O que foi validado
 
@@ -71,16 +73,27 @@ estável com timestamp fixo. O hash muda apenas se o conteúdo empacotado mudar
 - Ausência de vulnerabilidades nas dependências de runtime
   (`npm audit --omit=dev --audit-level=high`: 0).
 
+## CI e release reais
+
+| Evento | Resultado |
+|---|---|
+| CI #1 · `7e6e86d` (Node 22 e 24) | verde, 1 min |
+| CI #2 · `9235dc0` (runners fixados em `ubuntu-24.04`) | verde |
+| CI #3 · `eba7363` (1.1.0) | verde |
+| Release · tag `v1.1.0` | gate + checksum + publicação verdes |
+| CodeQL / Dependency review | ignorados pelo guard de GHAS, como esperado |
+
 ## Pendências manuais
 
-1. **GitHub**: aplicar o checklist de
-   [docs/GITHUB-SETTINGS.md](../GITHUB-SETTINGS.md) (ruleset de `main` com
-   `Verify` obrigatório, proteção de tag `v*`, relato privado de
-   vulnerabilidades). Se houver GitHub Code Security, definir
+1. **GitHub**: o repositório é privado no plano gratuito, então rulesets,
+   proteção de tag e relato privado de vulnerabilidades não estão disponíveis —
+   ver [docs/GITHUB-SETTINGS.md](../GITHUB-SETTINGS.md) para o que está ativo e
+   para as opções de bloqueio técnico. Se houver GitHub Code Security, definir
    `ENABLE_GHAS=true` para ativar CodeQL e dependency review.
-2. **Release `v1.1.0`**: a 1.0.0 já está publicada (tag em `e8ae4fb`, checksum
-   conferido) e permanece intocada; a 1.1.0 sai da tag deste commit, com
-   `dry_run` validado antes.
+2. **Release `v1.1.0`**: publicada pela tag `v1.1.0` no commit `eba7363`,
+   com `com.spresenter.pulse-fx-1.1.0.zip` e `.sha256`
+   (`f419bc92cd8041ce02ef25a3f04f6d162f30e6c74c6759c451deeb83a62b1f7c`). A 1.0.0
+   permanece publicada e intocada (tag em `e8ae4fb`).
 3. **Mídia**: fora do escopo desta rodada (sem sessão de captura disponível).
    Gravar `docs/media/panel.png`, `hit.gif`, `strobe.gif`, `pulse.gif` e
    `targets.png` conforme `docs/media/README.md` e descomentar o bloco no README.

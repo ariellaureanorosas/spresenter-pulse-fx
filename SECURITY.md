@@ -9,13 +9,15 @@
 
 ## Como relatar uma vulnerabilidade
 
-**Não abra uma issue pública.** O repositório é privado; use um dos canais
-abaixo:
+**Não abra uma issue pública.** O repositório é privado e o relato privado do
+GitHub não está disponível nele (recurso exclusivo de repositório público no
+plano gratuito ou de plano com GitHub Code Security). Use:
 
 1. **E-mail:** **ariellaureanorosas@gmail.com**, com o assunto
    `[Pulse FX] Relato de segurança`.
-2. **GitHub Security Advisory:** se o recurso de relato privado estiver
-   habilitado no repositório, use a aba **Security → Report a vulnerability**.
+
+Se o repositório passar a ter o relato privado habilitado, a aba
+**Security → Report a vulnerability** também passa a ser aceita.
 
 Inclua, se possível:
 

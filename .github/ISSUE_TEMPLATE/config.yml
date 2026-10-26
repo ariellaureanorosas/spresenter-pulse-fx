@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Relatar uma vulnerabilidade
-    url: https://github.com/ariellaureanorosas/spresenter-pulse-fx/security/advisories/new
-    about: Envie detalhes de segurança de forma privada, sem abrir uma issue pública.
+    url: https://github.com/ariellaureanorosas/spresenter-pulse-fx/blob/main/SECURITY.md
+    about: Envie detalhes de segurança por e-mail, sem abrir uma issue pública.
   - name: Dúvidas de uso e instalação
     url: https://github.com/ariellaureanorosas/spresenter-pulse-fx/blob/main/SUPPORT.md
     about: Antes de abrir uma issue, veja os canais e o checklist de suporte.

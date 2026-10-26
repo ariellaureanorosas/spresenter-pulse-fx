@@ -1,54 +1,68 @@
 # Configuração do GitHub
 
-Passos que não vivem no repositório e precisam ser aplicados no GitHub por um
-administrador. Faça-os uma vez e revise a cada release.
+Estado real do repositório e do que depende do plano e da visibilidade. Este
+documento existe para não prometer uma proteção que o GitHub não oferece hoje.
 
-## Proteção de `main`
+## Limitação atual: repositório privado no plano gratuito
 
-Crie um **ruleset** (Settings → Rules → Rulesets → New branch ruleset):
+Em repositório **privado no plano gratuito**, o GitHub não oferece:
 
-- Target: `main`.
-- **Require a pull request before merging** (1 aprovação; dispense para o
-  mantenedor apenas se não houver outra pessoa).
-- **Require status checks to pass**: selecione o check do workflow `CI` →
-  job `Verify` (o nome exibido é `Verify / Checks (Node 22)` e
-  `Verify / Build and package (Node 22)`). Marque **Require branches to be up to
-  date**.
-- **Block force pushes**.
-- **Require linear history**.
-- **Require conversation resolution**.
-- **Restrict deletions**.
+| Recurso | Resposta da API |
+|---|---|
+| Rulesets / proteção de branch | `403 Upgrade to GitHub Pro or make this repository public` |
+| Proteção de tag | indisponível pelo mesmo motivo |
+| Relato privado de vulnerabilidades | `404 Not Found` |
 
-## Proteção de tag
+Portanto, neste repositório **não há bloqueio técnico de merge nem de tag**. As
+garantias atuais são de processo:
 
-Crie outro ruleset com target **Tags** e padrão `v*`:
+- o CI (`verify.yml`) roda em todo push para `main` e em todo pull request;
+- `release.yml` recusa tag fora de `main` e tag que não seja `v<manifest.version>`;
+- `release.yml` reconstrói e confere o checksum antes de publicar;
+- o merge é feito por PR, com o gate verde, por convenção do mantenedor.
 
-- **Restrict creations** e **Restrict updates** (somente o mantenedor).
-- **Restrict deletions**.
+Para ter bloqueio técnico, uma das duas opções:
 
-Isso impede que uma tag de release seja movida depois de publicada.
+1. **Tornar o repositório público** — habilita proteção de branch, de tag e
+   relato privado no plano gratuito.
+2. **Assinar GitHub Pro** — habilita os mesmos recursos mantendo o repositório
+   privado.
 
-## Segurança
+Depois de habilitar, crie o ruleset de `main` exigindo os checks
+`Verify / Checks (Node 22)`, `Verify / Checks (Node 24)` e
+`Verify / Build and package (Node 22)`, com histórico linear, conversas
+resolvidas e force push bloqueado. Para tags, restrinja criação e atualização de
+`v*` ao mantenedor.
 
-- Settings → Code security: habilite **Private vulnerability reporting** para
-  que o link de `SECURITY.md` funcione.
-- Habilite **Dependabot alerts** e **Dependabot security updates**.
-- Se houver **GitHub Code Security** (GHAS), habilite **Code scanning** e crie a
-  variável de repositório `ENABLE_GHAS=true` (Settings → Secrets and variables →
-  Actions → Variables). Sem ela, os jobs `CodeQL` e `Dependency review` são
-  ignorados; com ela, passam a rodar em PR e push.
-- Em Settings → Actions → General, mantenha o token padrão com permissões
-  **read-only**; os workflows pedem `contents: write` apenas no job de release.
-- Habilite **Require approval for first-time contributors** se o repositório
-  receber contribuições externas.
+## Já habilitado
 
-## Repositório
+| Item | Estado |
+|---|---|
+| Dependabot alerts | ligado |
+| Dependabot security updates | ligado |
+| Actions fixadas por SHA (obrigatório) | ligado |
+| Token padrão do `GITHUB_TOKEN` | somente leitura |
+| Actions podem aprovar pull requests | não |
+
+O SHA pinning é verificado pelo GitHub: um `uses:` sem SHA completo passa a
+falhar no workflow, não apenas na revisão.
+
+## CodeQL e dependency review
+
+Os dois exigem **GitHub Code Security** (GHAS), que não está disponível neste
+plano/visibilidade. Os workflows existem e são ignorados pelo guard
+`github.event.repository.private == false || vars.ENABLE_GHAS == 'true'`.
+
+Quando houver GHAS (Pro/Enterprise ou repositório público), habilite code
+scanning e defina a variável de repositório `ENABLE_GHAS=true`
+(Settings → Secrets and variables → Actions → Variables).
+
+## Metadados do repositório
 
 - Descrição: `Efeitos de luz ao vivo (Hit, Strobe, Pulse) para o Spresenter.`
 - Tópicos: `spresenter`, `spresenter-plugin`, `lighting`, `live`, `typescript`.
-- Labels: `bug`, `enhancement`, `documentation`, `dependencies`,
+- Labels usadas: `bug`, `enhancement`, `documentation`, `dependencies`,
   `good first issue`.
-- Discussions: opcional; se ativar, direcione dúvidas de uso para lá.
 
 ## Release
 
@@ -62,8 +76,9 @@ Isso impede que uma tag de release seja movida depois de publicada.
 
 ## Checklist de revisão trimestral
 
-- [ ] Rulesets ainda apontam para os checks atuais (`Verify`).
+- [ ] Plano/visibilidade mudou? Se sim, aplicar ruleset e proteção de tag.
 - [ ] `ENABLE_GHAS` reflete o licenciamento disponível.
 - [ ] Dependabot sem PRs travados há mais de duas semanas.
-- [ ] Alertas de segurança e CodeQL zerados ou triados.
+- [ ] Alertas de segurança triados.
 - [ ] Tag `v*` mais recente tem release com os dois assets.
+- [ ] Actions ainda fixadas por SHA (o GitHub bloqueia, mas confira o histórico).
