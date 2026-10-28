@@ -100,4 +100,32 @@ describe('parâmetros e trava de frequência', () => {
     expect(host.elements.length).toBeGreaterThan(before);
     expect(host.lastState().selectedEffect).toMatchObject({ mode: 'strobe' });
   });
+
+  it('não re-dispara o hit quando um parâmetro muda', async () => {
+    const host = await loadLogic(createFakeHost());
+    await host.send({ type: 'fire' });
+
+    const before = host.elements.length;
+    const htmlBefore = host.lastElementHtml();
+
+    await host.send({ type: 'setParams', params: { intensity: 40, color: '#ff0000' } });
+    await host.advance(200);
+
+    // Hit é disparo único: a queda em curso continua, sem novo setElement.
+    expect(host.elements.length).toBe(before);
+    expect(host.lastElementHtml()).toBe(htmlBefore);
+    expect(host.lastState().effects).toHaveLength(1);
+  });
+
+  it('não re-dispara o hit ao alternar a trava de segurança', async () => {
+    const host = await loadLogic(createFakeHost());
+    await host.send({ type: 'setParams', params: { safetyLock: false } });
+    await host.send({ type: 'fire' });
+
+    const before = host.elements.length;
+    await host.send({ type: 'setParams', params: { safetyLock: true } });
+    await host.advance(200);
+
+    expect(host.elements.length).toBe(before);
+  });
 });

@@ -1167,6 +1167,10 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
     if (!current || current.token !== item.token) continue;
     if (item.effect.owner === 'ui' && !ui) continue;
     if (item.effect.owner === 'automation' && !all) continue;
+    // Hit é disparo único: re-renderizar aqui reiniciaria a animação do zero, e
+    // qualquer ajuste de slider viraria um novo flash. A queda em curso termina
+    // com os parâmetros do disparo; os novos valem do próximo em diante.
+    if (item.effect.mode === 'hit') continue;
 
     const target: Selection = {
       output: item.effect.output,

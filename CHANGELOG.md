@@ -5,6 +5,17 @@ Todas as mudanças notáveis deste projeto são documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.3.1] - 2026-10-28
+
+### Corrigido
+
+- **Hit disparava sozinho ao mexer nos parâmetros.** Com um hit em queda, o
+  painel re-renderizava o efeito a cada mudança de slider, o que reiniciava a
+  animação do zero — um novo flash a cada ajuste. Agora o hit é tratado como
+  disparo único: a queda em curso termina com os valores do disparo e as
+  alterações valem para o próximo. Strobe e Pulse continuam acompanhando os
+  sliders ao vivo.
+
 ## [1.3.0] - 2026-10-26
 
 ### Adicionado
@@ -141,6 +152,7 @@ Primeira versão instalável do Pulse FX.
 - Documentação de arquitetura, decisões técnicas e registro da verificação no
   app real (Spresenter 0.3.50).
 
+[1.3.1]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.3.1
 [1.3.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.3.0
 [1.2.1]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.2.1
 [1.2.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.2.0

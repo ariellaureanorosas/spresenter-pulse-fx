@@ -34,6 +34,7 @@ para que o histórico continue legível sem um arquivo por release.
 | 1.2.0 | prévia sem `<iframe>`, xadrez, clique para repetir | instalado; confirmação visual pendente |
 | 1.2.1 | dica "Repetir" sobre o palco removida | instalado; bundle sem a dica; confirmação visual pendente |
 | 1.3.0 | queda do Hit até 10 s | instalado; queda longa a conferir em saída real |
+| 1.3.1 | hit deixa de re-disparar ao mudar parâmetros | corrigido e coberto por teste; conferir na saída real |
 
 ## Pendências manuais
 
@@ -41,11 +42,13 @@ para que o histórico continue legível sem um arquivo por release.
    de moldura/vinheta em uma saída real.
 2. **Queda longa**: conferir que um hit de 10 s permanece no palco até o fim e
    limpa 120 ms depois.
-3. **Strobe e Pulse contínuos** em todas as saídas.
-4. **Editor de automação** com o painel fechado.
-5. **Limpeza do stage** ao desinstalar/desativar o plugin — a API não expõe
+3. **Hit sem re-disparo** (1.3.1): conferir na saída real que mexer em sliders
+   durante a queda não gera um novo flash.
+4. **Strobe e Pulse contínuos** em todas as saídas.
+5. **Editor de automação** com o painel fechado.
+6. **Limpeza do stage** ao desinstalar/desativar o plugin — a API não expõe
    callback de unload.
-6. **Mídia**: `docs/media/panel.png`, `hit.gif`, `strobe.gif`, `pulse.gif`,
+7. **Mídia**: `docs/media/panel.png`, `hit.gif`, `strobe.gif`, `pulse.gif`,
    `targets.png`, conforme [docs/media/README.md](../media/README.md).
 
 ## Decisões que vieram de verificação

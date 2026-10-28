@@ -65,6 +65,9 @@ UI (iframe sandbox)  ⇄ postMessage ⇄  lógica (processo isolado)  ⇄  spres
 6. **Menor privilégio.** Não adicionar escopos ao manifesto sem uso real.
 7. **`src/shared/` puro.** Sem `window`, `document` ou `spresenter`; é o que
    mantém a lógica testável em Node.
+8. **Hit é evento, não estado.** Mudar parâmetros não reinicia um hit em curso:
+   a queda termina com os valores do disparo e os novos valem do próximo em
+   diante. Strobe e Pulse, que são contínuos, acompanham os sliders ao vivo.
 
 ## Protocolo UI ↔ lógica
 
