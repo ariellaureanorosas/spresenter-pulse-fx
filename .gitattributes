@@ -13,6 +13,8 @@
 # SDK vendorizado: não é código nosso, não entra nas estatísticas do GitHub.
 sdk/*.tgz linguist-vendored
 
-# Mídia e checksums.
+# Mídia e checksums. O README da pasta é texto; o glob abaixo o trataria como
+# binário, então a exceção vem depois para valer.
 docs/media/* binary
+docs/media/README.md text eol=lf diff merge
 *.sha256 text eol=lf
