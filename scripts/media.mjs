@@ -25,6 +25,7 @@ const PANEL_HEIGHT = 2400;
 const SCALE = 2;
 
 const SECTIONS = [
+  { file: 'panel-previa.png', kicker: 'Prévia local' },
   { file: 'panel-destino.png', kicker: 'Destino' },
   { file: 'panel-movimento.png', kicker: 'Movimento' },
   { file: 'panel-composicao.png', kicker: 'Composição' },
@@ -158,21 +159,11 @@ async function renderPanel(browser) {
 
   const card = (kicker) => page.locator(`section.pfx-card:has(.pfx-kicker:text-is("${kicker}"))`);
 
-  const expected = SECTIONS.length + 1;
+  const expected = SECTIONS.length;
   const found = await page.locator('section.pfx-card').count();
   if (found !== expected) {
     throw new Error(`esperava ${expected} cartões no painel, encontrei ${found}`);
   }
-
-  // Herói: topo do painel até o fim do cartão de prévia.
-  const preview = card('Prévia local');
-  if ((await preview.count()) !== 1) throw new Error('cartão "Prévia local" não encontrado');
-  const previewBox = await preview.boundingBox();
-  const heroHeight = Math.ceil(previewBox.y + previewBox.height + 12);
-  await page.screenshot({
-    path: join(mediaDir, 'panel.png'),
-    clip: { x: 0, y: 0, width: PANEL_WIDTH, height: heroHeight },
-  });
 
   for (const section of SECTIONS) {
     const locator = card(section.kicker);
@@ -195,7 +186,111 @@ async function renderPanel(browser) {
 
   await page.close();
   server.close();
-  return { heroHeight };
+}
+
+// Arte de abertura: a marca do painel (o mesmo gradiente e o mesmo traço do
+// `IconPulse`) em tamanho grande, sobre o fundo do app. Não é print de tela.
+const HERO_WIDTH = 1280;
+const HERO_HEIGHT = 440;
+const HERO_SCALE = 2;
+
+// Repete o path do ícone (`M3 12h3.4l2.1-6.5l4.7 13l2.3-6.5H21`) como uma linha
+// de pulso contínua: cada ciclo tem 18 unidades e termina na linha de base.
+// A escala horizontal é maior que a vertical para o traço ficar mais calmo.
+function pulseWave(width, baseline, unitX, unitY) {
+  const period = 18 * unitX;
+  const shape = [
+    [3.4, 0],
+    [5.5, -6.5],
+    [10.2, 6.5],
+    [12.5, 0],
+    [18, 0],
+  ];
+  let x = 0;
+  let d = `M0 ${baseline}`;
+  while (x < width + period) {
+    for (const [dx, dy] of shape) {
+      d += ` L${(x + dx * unitX).toFixed(1)} ${(baseline + dy * unitY).toFixed(1)}`;
+    }
+    x += period;
+  }
+  return d;
+}
+
+async function renderHero(browser) {
+  const page = await browser.newPage({
+    viewport: { width: HERO_WIDTH, height: HERO_HEIGHT },
+    deviceScaleFactor: HERO_SCALE,
+  });
+
+  const wave = pulseWave(HERO_WIDTH, 52, 7, 2.8);
+
+  await page.setContent(`<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><style>
+  html, body { height:100%; margin:0; }
+  body {
+    display:grid; place-items:center; overflow:hidden;
+    font-family:"Segoe UI Variable Text","Segoe UI",Inter,system-ui,-apple-system,sans-serif;
+    color:#edf3f7;
+    background:
+      radial-gradient(900px 420px at 88% -12%, rgba(198,255,74,.075), transparent 64%),
+      radial-gradient(760px 460px at -18% 108%, rgba(53,224,255,.055), transparent 65%),
+      linear-gradient(180deg,#080b10 0%,#080b10 60%,#070a0e 100%);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wave { position:absolute; inset:auto 0 -8px; height:100px; pointer-events:none; }
+  .wave svg { display:block; width:100%; height:100%; }
+  .wave .base { fill:none; stroke:#c6ff4a; stroke-width:2; stroke-linecap:round;
+                stroke-linejoin:round; opacity:.10; }
+  .wave .glow { fill:none; stroke:#c6ff4a; stroke-width:2.4; stroke-linecap:round;
+                stroke-linejoin:round; opacity:.42;
+                mask:linear-gradient(90deg,transparent 28%,#000 44%,#000 56%,transparent 72%);
+                -webkit-mask:linear-gradient(90deg,transparent 28%,#000 44%,#000 56%,transparent 72%); }
+  .halo { position:absolute; width:520px; height:90px; left:50%; bottom:-8px;
+          transform:translateX(-50%); pointer-events:none;
+          background:radial-gradient(closest-side, rgba(198,255,74,.14), transparent);
+          filter:blur(8px); }
+
+  .art { position:relative; display:flex; flex-direction:column; align-items:center;
+         padding-bottom:34px; }
+
+  .logo { display:grid; place-items:center; width:112px; height:112px; border-radius:34px;
+          color:#0a1006;
+          background:linear-gradient(135deg,#ddff87 0%,#c6ff4a 48%,#89f7cf 100%);
+          box-shadow:
+            0 0 90px rgba(198,255,74,.28),
+            0 20px 50px rgba(0,0,0,.55),
+            inset 0 1px 0 rgba(255,255,255,.55); }
+  .logo svg { width:64px; height:64px; }
+
+  .name { margin-top:28px; font-size:64px; font-weight:760; letter-spacing:-.03em;
+          line-height:1; color:#edf3f7; }
+  .tagline { margin-top:16px; font-size:12.5px; font-weight:700; letter-spacing:.18em;
+             text-transform:uppercase; color:#6c7a8c; }
+</style></head>
+<body>
+  <div class="halo"></div>
+  <div class="wave"><svg viewBox="0 0 ${HERO_WIDTH} 120" preserveAspectRatio="none" aria-hidden="true">
+    <path class="base" d="${wave}"/>
+    <path class="glow" d="${wave}"/>
+  </svg></div>
+
+  <main class="art">
+    <span class="logo" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12h3.4l2.1-6.5l4.7 13l2.3-6.5H21"/>
+      </svg>
+    </span>
+    <h1 class="name">Pulse FX</h1>
+    <p class="tagline">Efeitos de luz ao vivo para o Spresenter</p>
+  </main>
+</body></html>`);
+
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(mediaDir, 'hero.png') });
+  await page.close();
 }
 
 async function renderTargets(browser, bundle) {
@@ -318,8 +413,10 @@ async function main() {
   await viteBuild({ configFile: join(root, 'vite.ui.config.ts'), logLevel: 'warn' });
 
   const browser = await chromium.launch();
-  const { heroHeight } = await renderPanel(browser);
-  console.log(`panel.png: ${PANEL_WIDTH}×${heroHeight} (2×)`);
+  await renderHero(browser);
+  console.log(`hero.png: ${HERO_WIDTH}×${HERO_HEIGHT} (${HERO_SCALE}×)`);
+
+  await renderPanel(browser);
   for (const section of SECTIONS) console.log(`${section.file}: ${section.kicker}`);
 
   await renderTargets(browser, bundle);

@@ -13,11 +13,8 @@ respiração suave projetados por cima da saída, com controle de intensidade,
 cor, geometria e uma trava de segurança de frequência.
 
 <p align="center">
-  <img src="docs/media/panel.png" alt="Painel do Pulse FX: status online no topo e o cartão de prévia do efeito sobre o xadrez de transparência" width="520">
+  <img src="docs/media/hero.png" alt="Pulse FX — efeitos de luz ao vivo para o Spresenter" width="860">
 </p>
-
-*Renderização do painel do plugin. A prévia usa a mesma geometria e os mesmos
-keyframes enviados à saída; não é captura do Spresenter.*
 
 [Instalação](#instalação) · [Como usar](#como-usar) · [Automação](#automação) ·
 [Desenvolvimento](#desenvolvimento) · [Documentação](#documentação) ·
@@ -129,11 +126,15 @@ npm run build
 
 ### As seções do painel
 
+*Renderização do painel: os cartões são o código real da UI, não uma captura do
+Spresenter.*
+
 |  |  |
 |---|---|
-| **Destino** — saída, camada e o botão que remove só o overlay do plugin.<br>![Cartão Destino](docs/media/panel-destino.png) | **Movimento** — Hit, Strobe e Pulse, com a descrição de cada modo.<br>![Cartão Movimento](docs/media/panel-movimento.png) |
-| **Composição** — cor, intensidade, área, frequência, espessura e suavização.<br>![Cartão Composição](docs/media/panel-composicao.png) | **Proteção** — a trava de 3 Hz, o teto em vigor e a frequência atual.<br>![Cartão Proteção](docs/media/panel-protecao.png) |
-| **Execução** — disparar, reiniciar e parar o efeito na camada.<br>![Cartão Execução](docs/media/panel-execucao.png) | **Automação** — os três nós disponíveis no editor do app.<br>![Cartão Automação](docs/media/panel-automacao.png) |
+| **Prévia local** — o efeito sobre o xadrez de transparência, antes de ir para a saída.<br>![Cartão Prévia local](docs/media/panel-previa.png) | **Destino** — saída, camada e o botão que remove só o overlay do plugin.<br>![Cartão Destino](docs/media/panel-destino.png) |
+| **Movimento** — Hit, Strobe e Pulse, com a descrição de cada modo.<br>![Cartão Movimento](docs/media/panel-movimento.png) | **Composição** — cor, intensidade, área, frequência, espessura e suavização.<br>![Cartão Composição](docs/media/panel-composicao.png) |
+| **Proteção** — a trava de 3 Hz, o teto em vigor e a frequência atual.<br>![Cartão Proteção](docs/media/panel-protecao.png) | **Execução** — disparar, reiniciar e parar o efeito na camada.<br>![Cartão Execução](docs/media/panel-execucao.png) |
+| **Automação** — os três nós disponíveis no editor do app.<br>![Cartão Automação](docs/media/panel-automacao.png) |  |
 
 As três áreas do efeito, lado a lado:
 
