@@ -4,7 +4,7 @@
 
 | Componente | Versão | Observação |
 |---|---|---|
-| Pulse FX | 1.3.1 | Versão atual. |
+| Pulse FX | 1.3.2 | Versão atual. |
 | Spresenter | **0.3.50 ou superior** | `minAppVersion` no manifesto. |
 | SDK de plugins | **0.5.0** | Vendorizado em `sdk/spresenter-plugin-sdk.tgz`. |
 | Node.js (desenvolvimento) | **22.12 ou superior** | `.nvmrc` fixa 22.12.0; CI testa 22 e 24. |
