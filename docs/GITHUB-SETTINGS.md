@@ -32,8 +32,23 @@ a falhar no workflow, não apenas na revisão.
 
 ## Estado verificado
 
-<!-- Preencher com a resposta da API depois de aplicar as configurações. -->
-<!-- Formato: | item | evidência | data | -->
+Verificado em **2026-10-28**, depois da abertura do repositório.
+
+| Item | Evidência |
+|---|---|
+| Visibilidade | `gh repo view`: `visibility PUBLIC`, `isPrivate false` |
+| Discussions | `hasDiscussionsEnabled true` |
+| Licença detectada | MIT |
+| Ruleset `main protegido` | id `26058875`, `target branch`, `enforcement active`, `current_user_can_bypass never` |
+| Ruleset `tags de release` | id `26058876`, `target tag`, `include refs/tags/v*`, regras `deletion` e `update` |
+| Push direto em `main` | rejeitado: `push declined due to repository rule violations` e `3 of 3 required status checks are expected` |
+| Relato privado de vulnerabilidades | `GET /private-vulnerability-reporting` → `{"enabled":true}` |
+| Secret scanning | `security_and_analysis.secret_scanning.status` = `enabled` |
+| Push protection | `security_and_analysis.secret_scanning_push_protection.status` = `enabled` |
+| Download anônimo da release | ZIP da 1.3.1 baixado sem autenticação; SHA-256 `5e79b195…995043`, igual ao `.sha256` publicado |
+
+`secret_scanning_non_provider_patterns` e `secret_scanning_validity_checks`
+continuam `disabled`: são recursos pagos, não fazem parte do plano atual.
 
 ## CodeQL e dependency review
 
