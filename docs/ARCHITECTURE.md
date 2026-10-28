@@ -267,4 +267,6 @@ pela lógica quanto pelo painel; por isso tem a meta de cobertura mais alta.
 - Novos modos, alvos ou efeitos sem decisão de produto.
 - Telemetria, analytics ou chamadas de rede próprias.
 - Framework de i18n: a UI é pt-BR por decisão de produto.
-- Publicação no npm: o projeto é privado (`"private": true`).
+- Publicação no npm: `"private": true` no `package.json` impede a publicação do
+  pacote. O plugin é distribuído como ZIP na release; o repositório é público,
+  mas o npm não é canal de distribuição.

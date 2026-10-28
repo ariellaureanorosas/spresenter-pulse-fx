@@ -12,7 +12,8 @@ fluxo de revisão. Ao participar, você concorda com o
   [política de segurança](SECURITY.md).
 - Mudanças de comportamento devem preservar as APIs documentadas do Spresenter.
   Não introduza dependências de APIs internas ou não documentadas.
-- O repositório é privado; o acesso é concedido pelo mantenedor.
+- O repositório é público: faça um fork, crie um branch e abra um pull request.
+  Não é preciso pedir acesso.
 
 ## Ambiente
 
@@ -33,6 +34,7 @@ npm run test:watch   # Vitest em watch
 npm run test:coverage # Vitest com cobertura e limites mínimos
 npm run dev          # watches de código e UI
 npm run package      # build + ZIP + SHA-256 em release/
+npm run media        # regenera docs/media a partir do build (Playwright)
 ```
 
 O SDK oficial está vendorizado em `sdk/spresenter-plugin-sdk.tgz` (0.5.0) com
@@ -86,9 +88,8 @@ Os workflows ficam em `.github/workflows/`:
 - `release.yml` — publica a release a partir de uma tag `v*` (ver
   [docs/RELEASING.md](docs/RELEASING.md)).
 - `codeql.yml` e `dependency-review.yml` — análise de segurança e revisão de
-  dependências. Em repositório privado exigem GitHub Code Security habilitado;
-  depois de habilitar, defina a variável de repositório `ENABLE_GHAS=true` para
-  ativá-los.
+  dependências. Rodam em pull request e em push para `main`, sem segredo
+  adicional: o `GITHUB_TOKEN` do repositório público já tem o necessário.
 
 Todos os checks precisam estar verdes antes do merge. Em pull request,
 `npm run verify` local é o mesmo caminho executado no CI. A configuração de

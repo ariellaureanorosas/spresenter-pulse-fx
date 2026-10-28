@@ -2,34 +2,44 @@
 
 <p>
   <a href="https://github.com/ariellaureanorosas/spresenter-pulse-fx/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ariellaureanorosas/spresenter-pulse-fx/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases"><img alt="Última versão" src="https://img.shields.io/github/v/release/ariellaureanorosas/spresenter-pulse-fx?label=release"></a>
   <a href="LICENSE"><img alt="Licença: MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-22d3ee"></a>
   <a href="manifest.json"><img alt="Spresenter 0.3.50+" src="https://img.shields.io/badge/Spresenter-0.3.50%2B-8b5cf6"></a>
-  <a href="package.json"><img alt="Node.js 22.12+" src="https://img.shields.io/badge/Node.js-22.12%2B-339933"></a>
+  <a href="https://discord.gg/RzTUDq6cc2"><img alt="Discord" src="https://img.shields.io/badge/Discord-Spresenter-5865F2"></a>
 </p>
 
 **Efeitos de luz ao vivo para o Spresenter.** Um flash, uma piscada ou uma
 respiração suave projetados por cima da saída, com controle de intensidade,
 cor, geometria e uma trava de segurança de frequência.
 
-<!--
-Demonstração: grave os arquivos descritos em docs/media/README.md e descomente
-o bloco abaixo.
-
 <p align="center">
-  <img src="docs/media/hit.gif" alt="Hit do Pulse FX em uma saída do Spresenter" width="640">
+  <img src="docs/media/hit.gif" alt="Hit do Pulse FX: flash que acende e cai sobre a saída" width="640">
 </p>
 
 | Hit | Strobe | Pulse |
 |---|---|---|
 | ![Hit](docs/media/hit.gif) | ![Strobe](docs/media/strobe.gif) | ![Pulse](docs/media/pulse.gif) |
--->
+
+*Renderizações do overlay do plugin, com a mesma geometria e os mesmos keyframes
+enviados à saída. O fundo escuro é um palco neutro, não uma captura do
+Spresenter.*
+
+<details>
+<summary><strong>Ver o painel e as três áreas do efeito</strong></summary>
+
+![Painel do Pulse FX com Pulse em execução](docs/media/panel.png)
+
+![Tela cheia, vinheta e moldura](docs/media/targets.png)
+
+</details>
 
 [Instalação](#instalação) · [Como usar](#como-usar) · [Automação](#automação) ·
 [Desenvolvimento](#desenvolvimento) · [Documentação](#documentação) ·
 [Solução de problemas](#solução-de-problemas)
 
 > Compatível com Spresenter **0.3.50** ou superior.
-> Repositório privado: instalação e releases exigem acesso de colaborador.
+> Plugin **comunitário e não oficial**, mantido por Ariel Laureano Rosas.
+> Dúvidas de uso: [Discord do Spresenter](https://discord.gg/RzTUDq6cc2).
 
 O plugin é composto por duas threads, como a documentação do Spresenter exige:
 a lógica roda isolada, sem DOM, e o painel React apenas envia intenções e
@@ -70,8 +80,6 @@ manifesto declara o mínimo necessário:
 ## Instalação
 
 ### Pacote da release
-
-> O repositório é **privado**. O download exige acesso de colaborador ao GitHub.
 
 1. Baixe o ZIP e o checksum na
    [página de releases](https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases).
@@ -245,6 +253,7 @@ npm ci
 npm run verify      # formato, lint, tipos, testes com cobertura, build e ZIP
 npm run dev         # watches de código e UI
 npm run test:watch  # Vitest em watch
+npm run media       # regenera docs/media (requer npx playwright install chromium)
 ```
 
 O `verify` é o mesmo gate do CI. O pacote final contém `manifest.json` na raiz,
@@ -256,8 +265,8 @@ Cada push e pull request para `main` executa formatação, lint, typecheck, a
 suíte completa com cobertura, auditoria das dependências de runtime, build e
 empacotamento no GitHub Actions, em Node 22 e 24. O workflow reutilizável
 `.github/workflows/verify.yml` é o mesmo gate chamado pelo release; a tag só
-publica depois que ele passa. CodeQL e revisão de dependências rodam quando
-GitHub Code Security está habilitado.
+publica depois que ele passa. CodeQL e revisão de dependências rodam em todo
+pull request.
 
 ### Estrutura
 
@@ -329,9 +338,15 @@ O que depende do host e não é provado no repositório está detalhado em
 
 Contribuições seguem o [guia de contribuição](CONTRIBUTING.md) e o
 [Código de Conduta](CODE_OF_CONDUCT.md), com Conventional Commits, TypeScript
-estrito e testes para toda lógica nova. Para relatar uma vulnerabilidade, use o
-canal privado descrito em [SECURITY.md](SECURITY.md); não abra uma issue
-pública.
+estrito e testes para toda lógica nova. Faça um fork, crie um branch e abra um
+pull request — o gate `npm run verify` roda no CI e precisa passar.
+
+Para relatar uma vulnerabilidade, use o
+[relato privado do GitHub](https://github.com/ariellaureanorosas/spresenter-pulse-fx/security/advisories/new)
+descrito em [SECURITY.md](SECURITY.md); não abra uma issue pública.
+
+Este é um plugin comunitário, mantido em regime de melhor esforço, sem vínculo
+com a Sonext/Spresenter além do uso do SDK oficial.
 
 ## Licença
 

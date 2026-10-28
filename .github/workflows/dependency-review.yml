@@ -1,7 +1,7 @@
 name: Dependency review
 
 # Revisa o diff de dependências em pull requests e falha em severidade alta.
-# Em repositório privado exige GitHub Code Security; até lá o job é ignorado
+# Em repositório público roda sempre; em privado exige GitHub Code Security
 # (defina ENABLE_GHAS=true depois de habilitar).
 
 on:

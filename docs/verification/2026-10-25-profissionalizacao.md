@@ -3,6 +3,11 @@
 Registro do gate local executado na rodada de qualidade (lint/format, testes,
 scripts de validação, CI e documentação), antes da tag `v1.1.0`.
 
+> **Nota histórica.** Este registro descreve o repositório como ele estava em
+> 25/10/2026, ainda **privado**. Em 28/10/2026 o repositório passou a público e
+> as proteções que dependiam disso foram ativadas; para o estado atual, consulte
+> [docs/GITHUB-SETTINGS.md](../GITHUB-SETTINGS.md).
+
 **Versão:** 1.1.0
 **SDK vendorizado:** 0.5.0
 **Spresenter de referência:** 0.3.50
@@ -98,7 +103,8 @@ package:folder` evita que o problema volte, gerando uma pasta com apenas
    proteção de tag e relato privado de vulnerabilidades não estão disponíveis —
    ver [docs/GITHUB-SETTINGS.md](../GITHUB-SETTINGS.md) para o que está ativo e
    para as opções de bloqueio técnico. Se houver GitHub Code Security, definir
-   `ENABLE_GHAS=true` para ativar CodeQL e dependency review.
+   `ENABLE_GHAS=true` para ativar CodeQL e dependency review. *(Estado da época:
+   resolvido em 28/10/2026 com a abertura do repositório.)*
 2. **Release `v1.1.0`**: publicada pela tag `v1.1.0` no commit `eba7363`,
    com `com.spresenter.pulse-fx-1.1.0.zip` e `.sha256`
    (`f419bc92cd8041ce02ef25a3f04f6d162f30e6c74c6759c451deeb83a62b1f7c`). A 1.0.0

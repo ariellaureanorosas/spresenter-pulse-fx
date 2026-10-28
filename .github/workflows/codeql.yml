@@ -1,8 +1,8 @@
 name: CodeQL
 
-# Análise estática de segurança. Em repositório privado o CodeQL exige GitHub
-# Code Security habilitado; enquanto isso não acontecer, o job é ignorado
-# (defina a variável de repositório ENABLE_GHAS=true depois de habilitar).
+# Análise estática de segurança. Roda sempre em repositório público; em
+# repositório privado o CodeQL exige GitHub Code Security (defina a variável de
+# repositório ENABLE_GHAS=true depois de habilitar).
 
 on:
   push:

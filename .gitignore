@@ -8,6 +8,7 @@ test-results/
 
 # Ferramentas / SO
 .vite/
+.media/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
