@@ -20,9 +20,12 @@ updates:
       npm-minor-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
-      npm-major:
-        patterns: ["*"]
-        update-types: ["major"]
+    # Major não abre PR sozinho: React 19 e TypeScript 7, por exemplo, exigem
+    # mudança de código e conferência no app. São tratados em rodada própria.
+    # Security updates não passam por esta regra.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
