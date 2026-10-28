@@ -24,6 +24,7 @@ para que o histórico continue legível sem um arquivo por release.
 |---|---|---|---|---|
 | 2026-10-25 | 1.0.0 | Spresenter 0.3.50, Windows | boot e handshake do painel; **Disparar hit** em camada livre produziu o flash na saída | [spresenter-0.3.50](2026-10-25-spresenter-0.3.50.md) |
 | 2026-10-25 | 1.1.0 | Windows + CI | gate completo; `EPERM` de reinstalação reproduzido e resolvido; CI e release reais | [profissionalizacao](2026-10-25-profissionalizacao.md) |
+| 2026-10-28 | 1.3.1 | GitHub público | rulesets de `main` e de tag ativos, push direto recusado, relato privado e secret scanning ligados, ZIP baixado sem autenticação com checksum conferido | [GITHUB-SETTINGS](../GITHUB-SETTINGS.md#estado-verificado) |
 
 ## O que já foi confirmado no app, por versão
 
@@ -48,8 +49,10 @@ para que o histórico continue legível sem um arquivo por release.
 5. **Editor de automação** com o painel fechado.
 6. **Limpeza do stage** ao desinstalar/desativar o plugin — a API não expõe
    callback de unload.
-7. **Mídia**: `docs/media/panel.png`, `hit.gif`, `strobe.gif`, `pulse.gif`,
-   `targets.png`, conforme [docs/media/README.md](../media/README.md).
+7. **Mídia**: os cinco arquivos de `docs/media/` existem e são gerados por
+   `npm run media` a partir do próprio overlay e da UI (ver
+   [docs/media/README.md](../media/README.md)). Falta apenas confirmar o visual
+   em uma saída real — a mídia atual é rotulada como renderização.
 
 ## Decisões que vieram de verificação
 
