@@ -1,78 +1,81 @@
 // Gera a mídia do README a partir do próprio código do plugin.
 //
-// O overlay vem de `buildOverlayHtml` (o mesmo caminho usado em produção) e o
-// painel é a UI React de `src/ui/` servida localmente, com um host falso que só
-// responde ao `requestState` com um estado plausível. Nada aqui é captura de
-// tela do aplicativo: o README rotula como "renderização".
+// O painel é a UI React de `src/ui/` servida localmente, com um host falso que
+// só responde ao `requestState` com um estado plausível. Cada print é o cartão
+// real (`section.pfx-card`), recortado pelo kicker. Nada aqui é captura de tela
+// do aplicativo: o README rotula como "renderização".
 //
 // Uso: npm run media
 // Requer o Chromium do Playwright: npx playwright install chromium
 
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
-import gifenc from 'gifenc';
 import { chromium } from 'playwright';
 import { build as viteBuild } from 'vite';
-
-const { GIFEncoder, applyPalette, quantize } = gifenc;
 
 const root = resolve(import.meta.dirname, '..');
 const mediaDir = join(root, 'docs/media');
 const buildDir = join(root, '.media');
 
-const WIDTH = 640;
-const HEIGHT = 360;
-const FPS = 20;
+// O painel é uma coluna estreita; 660 px evita a margem escura nas laterais e
+// 2× mantém o texto legível no tamanho em que o README exibe.
+const PANEL_WIDTH = 660;
+const PANEL_HEIGHT = 2400;
+const SCALE = 2;
 
-// Palco neutro: escuro o bastante para o flash e a vinheta aparecerem sem
-// simular conteúdo de uma apresentação real.
-const BACKDROP =
-  'background:radial-gradient(120% 90% at 50% 38%,#26303c 0%,#151b23 55%,#0a0e13 100%);';
+const SECTIONS = [
+  { file: 'panel-destino.png', kicker: 'Destino' },
+  { file: 'panel-movimento.png', kicker: 'Movimento' },
+  { file: 'panel-composicao.png', kicker: 'Composição' },
+  { file: 'panel-protecao.png', kicker: 'Proteção' },
+  { file: 'panel-execucao.png', kicker: 'Execução' },
+  { file: 'panel-automacao.png', kicker: 'Automação' },
+];
 
-const SHOTS = [
-  {
-    file: 'hit.gif',
-    label: 'Hit',
-    params: {
-      mode: 'hit',
-      color: '#ffffff',
-      target: 'full',
-      intensity: 92,
-      decayMs: 1400,
-      frequencyHz: 2,
-      flashWidth: 50,
-      thickness: 35,
-      softness: 50,
-      safetyLock: true,
-    },
-    durationMs: 1500,
-  },
-  {
-    file: 'strobe.gif',
-    label: 'Strobe',
-    params: {
-      mode: 'strobe',
-      color: '#f5f3ff',
-      target: 'full',
-      intensity: 88,
-      decayMs: 320,
-      frequencyHz: 3,
-      flashWidth: 38,
-      thickness: 35,
-      softness: 50,
-      safetyLock: true,
-    },
-    durationMs: 2000,
-  },
-  {
-    file: 'pulse.gif',
-    label: 'Pulse',
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.woff2': 'font/woff2',
+};
+
+function serveUi() {
+  const uiDir = join(root, 'dist/ui');
+  const server = createServer(async (request, response) => {
+    const url = new URL(request.url ?? '/', 'http://127.0.0.1');
+    const pathname = url.pathname === '/' ? '/index.html' : url.pathname;
+    const file = join(uiDir, pathname);
+    if (!file.startsWith(uiDir)) {
+      response.writeHead(403).end();
+      return;
+    }
+    try {
+      const body = await readFile(file);
+      response.writeHead(200, {
+        'content-type': MIME[extname(file)] ?? 'application/octet-stream',
+      });
+      response.end(body);
+    } catch {
+      response.writeHead(404).end();
+    }
+  });
+  return new Promise((resolveServer) => {
+    server.listen(0, '127.0.0.1', () => resolveServer(server));
+  });
+}
+
+function panelState() {
+  const startedAt = Date.now() - 4200;
+  return {
+    revision: 12,
     params: {
       mode: 'pulse',
       color: '#a5b4fc',
       target: 'vignette',
-      intensity: 80,
+      intensity: 78,
       decayMs: 320,
       frequencyHz: 0.9,
       flashWidth: 50,
@@ -80,82 +83,119 @@ const SHOTS = [
       softness: 62,
       safetyLock: true,
     },
-    durationMs: 2400,
-  },
-];
-
-function rgbaFromPng(page, pngBuffer) {
-  return page.evaluate(async (base64) => {
-    const image = new Image();
-    image.src = `data:image/png;base64,${base64}`;
-    await image.decode();
-    const canvas = document.createElement('canvas');
-    canvas.width = image.width;
-    canvas.height = image.height;
-    const context = canvas.getContext('2d');
-    context.drawImage(image, 0, 0);
-    const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
-    let binary = '';
-    const chunk = 0x8000;
-    for (let index = 0; index < data.length; index += chunk) {
-      binary += String.fromCharCode.apply(null, data.subarray(index, index + chunk));
-    }
-    return btoa(binary);
-  }, pngBuffer.toString('base64'));
+    selection: { output: '1', layer: 2 },
+    applied: true,
+    layerOccupied: false,
+    layerOccupiedByUs: true,
+    layerDisabled: false,
+    effects: [{ output: '1', layer: 2, mode: 'pulse', startedAt, owner: 'ui' }],
+    selectedEffect: { output: '1', layer: 2, mode: 'pulse', startedAt, owner: 'ui' },
+    appliedTargets: [{ output: '1', layer: 2, effect: 'pulse' }],
+    lastClamp: null,
+    ready: true,
+    outputs: [
+      { index: 1, name: 'Projetor principal', width: 1920, height: 1080, disabledLayers: [] },
+    ],
+    layers: [
+      { index: 1, name: 'Base' },
+      { index: 2, name: 'Efeitos' },
+      { index: 3, name: 'Avisos' },
+    ],
+  };
 }
 
-async function renderGif(page, shot) {
-  await page.evaluate(
-    ({ params, backdrop }) => {
-      const stage = document.getElementById('stage');
-      stage.style.cssText = `position:relative;width:${stage.clientWidth}px;height:${stage.clientHeight}px;overflow:hidden;${backdrop}`;
-      stage.innerHTML = PFXMedia.buildOverlayHtml(params, { token: 'media' });
-      const sheet = stage.querySelector('.pfx-sheet');
-      sheet.style.animationPlayState = 'paused';
-      sheet.style.animationDelay = '0ms';
-    },
-    { params: shot.params, backdrop: BACKDROP },
+async function renderPanel(browser) {
+  const server = await serveUi();
+  const { port } = server.address();
+  const page = await browser.newPage({
+    viewport: { width: PANEL_WIDTH, height: PANEL_HEIGHT },
+    deviceScaleFactor: SCALE,
+  });
+
+  await page.addInitScript((state) => {
+    window.addEventListener('message', (event) => {
+      const envelope = event.data;
+      if (envelope?.__spresenter !== true) return;
+      if (envelope.data?.type !== 'requestState') return;
+      window.postMessage({ __spresenter: true, data: { type: 'state', state } }, '*');
+    });
+  }, panelState());
+
+  await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'networkidle' });
+  await page.waitForSelector('.pfx-app');
+
+  // A janela precisa ser tão alta quanto o conteúdo: o painel rola dentro de
+  // `.pfx-app`, e um recorte fora da viewport sairia vazio.
+  const contentHeight = await page.evaluate(() =>
+    Math.ceil(document.querySelector('.pfx-app').scrollHeight),
   );
+  await page.setViewportSize({ width: PANEL_WIDTH, height: Math.min(contentHeight + 24, 4000) });
+  await page.waitForTimeout(400);
 
-  const frameCount = Math.round((shot.durationMs / 1000) * FPS);
-  const frameDelay = Math.round(1000 / FPS);
-  const frames = [];
+  // Congela a prévia no pico do ciclo (50%). `animation-delay` não serve: o
+  // tempo já decorrido desde a montagem entra na conta e o quadro sai no fim da
+  // animação. A Web Animations API fixa o progresso exatamente.
+  await page.waitForSelector('.pfx-preview-sheet');
+  await page.evaluate(() => {
+    for (const sheet of document.querySelectorAll('.pfx-preview-sheet')) {
+      for (const animation of sheet.getAnimations()) {
+        animation.pause();
+        const timing = animation.effect.getComputedTiming();
+        if (typeof timing.duration === 'number') {
+          animation.currentTime = timing.duration * 0.5;
+        }
+      }
+    }
+  });
+  await page.waitForTimeout(250);
 
-  for (let frame = 0; frame < frameCount; frame += 1) {
-    await page.evaluate(
-      (delay) => {
-        const sheet = document.querySelector('#stage .pfx-sheet');
-        sheet.style.animationDelay = `${delay}ms`;
+  const previewOpacity = await page.evaluate(() =>
+    Number(getComputedStyle(document.querySelector('.pfx-preview-sheet')).opacity),
+  );
+  if (!(previewOpacity > 0.1)) {
+    throw new Error(`prévia saiu apagada (opacidade ${previewOpacity}); não gere mídia vazia`);
+  }
+
+  const card = (kicker) => page.locator(`section.pfx-card:has(.pfx-kicker:text-is("${kicker}"))`);
+
+  const expected = SECTIONS.length + 1;
+  const found = await page.locator('section.pfx-card').count();
+  if (found !== expected) {
+    throw new Error(`esperava ${expected} cartões no painel, encontrei ${found}`);
+  }
+
+  // Herói: topo do painel até o fim do cartão de prévia.
+  const preview = card('Prévia local');
+  if ((await preview.count()) !== 1) throw new Error('cartão "Prévia local" não encontrado');
+  const previewBox = await preview.boundingBox();
+  const heroHeight = Math.ceil(previewBox.y + previewBox.height + 12);
+  await page.screenshot({
+    path: join(mediaDir, 'panel.png'),
+    clip: { x: 0, y: 0, width: PANEL_WIDTH, height: heroHeight },
+  });
+
+  for (const section of SECTIONS) {
+    const locator = card(section.kicker);
+    const count = await locator.count();
+    if (count !== 1) {
+      throw new Error(`esperava 1 cartão "${section.kicker}", encontrei ${count}`);
+    }
+    const box = await locator.boundingBox();
+    const margin = 10;
+    await page.screenshot({
+      path: join(mediaDir, section.file),
+      clip: {
+        x: Math.max(0, Math.floor(box.x - margin)),
+        y: Math.max(0, Math.floor(box.y - margin)),
+        width: Math.min(PANEL_WIDTH, Math.ceil(box.width + margin * 2)),
+        height: Math.ceil(box.height + margin * 2),
       },
-      -Math.round((frame / FPS) * 1000),
-    );
-
-    const png = await page.screenshot({
-      clip: { x: 0, y: 0, width: WIDTH, height: HEIGHT },
-    });
-    const rgba = await rgbaFromPng(page, png);
-    frames.push(new Uint8Array(Buffer.from(rgba, 'base64')));
-  }
-
-  // Paleta única para toda a animação: uma paleta por frame faria o fundo
-  // "tremer" entre os quadros.
-  const sample = Buffer.concat(
-    frames.filter((_, index) => index % 4 === 0).map((frame) => Buffer.from(frame)),
-  );
-  const palette = quantize(new Uint8Array(sample), 256, { format: 'rgb565' });
-
-  const gif = GIFEncoder();
-  for (const frame of frames) {
-    gif.writeFrame(applyPalette(frame, palette, 'rgb565'), WIDTH, HEIGHT, {
-      palette,
-      delay: frameDelay,
     });
   }
-  gif.finish();
 
-  const bytes = gif.bytes();
-  await writeFile(join(mediaDir, shot.file), bytes);
-  return { bytes: bytes.length, frames: frames.length };
+  await page.close();
+  server.close();
+  return { heroHeight };
 }
 
 async function renderTargets(browser, bundle) {
@@ -267,115 +307,6 @@ async function renderTargets(browser, bundle) {
   await page.close();
 }
 
-const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.woff2': 'font/woff2',
-};
-
-function serveUi() {
-  const uiDir = join(root, 'dist/ui');
-  const server = createServer(async (request, response) => {
-    const url = new URL(request.url ?? '/', 'http://127.0.0.1');
-    const pathname = url.pathname === '/' ? '/index.html' : url.pathname;
-    const file = join(uiDir, pathname);
-    if (!file.startsWith(uiDir)) {
-      response.writeHead(403).end();
-      return;
-    }
-    try {
-      const body = await readFile(file);
-      response.writeHead(200, {
-        'content-type': MIME[extname(file)] ?? 'application/octet-stream',
-      });
-      response.end(body);
-    } catch {
-      response.writeHead(404).end();
-    }
-  });
-  return new Promise((resolveServer) => {
-    server.listen(0, '127.0.0.1', () => resolveServer(server));
-  });
-}
-
-function panelState() {
-  const startedAt = Date.now() - 4200;
-  return {
-    revision: 12,
-    params: {
-      mode: 'pulse',
-      color: '#a5b4fc',
-      target: 'vignette',
-      intensity: 78,
-      decayMs: 320,
-      frequencyHz: 0.9,
-      flashWidth: 50,
-      thickness: 58,
-      softness: 62,
-      safetyLock: true,
-    },
-    selection: { output: '1', layer: 2 },
-    applied: true,
-    layerOccupied: false,
-    layerOccupiedByUs: true,
-    layerDisabled: false,
-    effects: [{ output: '1', layer: 2, mode: 'pulse', startedAt, owner: 'ui' }],
-    selectedEffect: { output: '1', layer: 2, mode: 'pulse', startedAt, owner: 'ui' },
-    appliedTargets: [{ output: '1', layer: 2, effect: 'pulse' }],
-    lastClamp: null,
-    ready: true,
-    outputs: [
-      { index: 1, name: 'Projetor principal', width: 1920, height: 1080, disabledLayers: [] },
-    ],
-    layers: [
-      { index: 1, name: 'Base' },
-      { index: 2, name: 'Efeitos' },
-      { index: 3, name: 'Avisos' },
-    ],
-  };
-}
-
-async function renderPanel(browser) {
-  const server = await serveUi();
-  const { port } = server.address();
-  const page = await browser.newPage({
-    viewport: { width: 1100, height: 900 },
-    deviceScaleFactor: 1,
-  });
-
-  await page.addInitScript((state) => {
-    window.addEventListener('message', (event) => {
-      const envelope = event.data;
-      if (envelope?.__spresenter !== true) return;
-      if (envelope.data?.type !== 'requestState') return;
-      window.postMessage({ __spresenter: true, data: { type: 'state', state } }, '*');
-    });
-  }, panelState());
-
-  await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'networkidle' });
-  await page.waitForSelector('.pfx-app');
-  // Deixe a prévia animar até um instante visível do ciclo.
-  await page.waitForTimeout(1200);
-
-  // O painel rola dentro de `.pfx-app` (height:100%). Ajuste a janela à altura
-  // real do conteúdo para capturar tudo, sem cortar um cartão no meio.
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const height = await page.evaluate(() =>
-      Math.ceil(document.querySelector('.pfx-app').scrollHeight),
-    );
-    await page.setViewportSize({ width: 1100, height: Math.min(height, 2200) });
-    await page.waitForTimeout(250);
-  }
-  const size = page.viewportSize();
-  await page.screenshot({ path: join(mediaDir, 'panel.png') });
-  await page.close();
-  server.close();
-  return size;
-}
-
 async function main() {
   await mkdir(mediaDir, { recursive: true });
   await rm(buildDir, { recursive: true, force: true });
@@ -383,34 +314,16 @@ async function main() {
   await viteBuild({ configFile: join(root, 'vite.media.config.ts'), logLevel: 'warn' });
   const bundle = await readFile(join(buildDir, 'overlay.js'), 'utf8');
 
-  const browser = await chromium.launch();
-  const page = await browser.newPage({
-    viewport: { width: WIDTH, height: HEIGHT },
-    deviceScaleFactor: 1,
-  });
-  await page.setContent(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>
-    html,body { margin:0; background:#05070a; }
-    #stage { position:relative; width:${WIDTH}px; height:${HEIGHT}px; overflow:hidden; }
-  </style></head><body><div id="stage"></div></body></html>`);
-  await page.addScriptTag({ content: bundle });
+  // A UI compilada é servida localmente; o build é o mesmo do pacote.
+  await viteBuild({ configFile: join(root, 'vite.ui.config.ts'), logLevel: 'warn' });
 
-  for (const shot of SHOTS) {
-    const result = await renderGif(page, shot);
-    console.log(`${shot.file}: ${result.frames} quadros, ${(result.bytes / 1024).toFixed(0)} KB`);
-  }
-  await page.close();
+  const browser = await chromium.launch();
+  const { heroHeight } = await renderPanel(browser);
+  console.log(`panel.png: ${PANEL_WIDTH}×${heroHeight} (2×)`);
+  for (const section of SECTIONS) console.log(`${section.file}: ${section.kicker}`);
 
   await renderTargets(browser, bundle);
   console.log('targets.png: 1600×560');
-
-  try {
-    // A UI compilada é servida localmente; o build é o mesmo do pacote.
-    await viteBuild({ configFile: join(root, 'vite.ui.config.ts'), logLevel: 'warn' });
-    const size = await renderPanel(browser);
-    console.log(`panel.png: ${size.width}×${size.height}`);
-  } catch (error) {
-    console.warn(`panel.png não gerado: ${error.message.split('\n')[0]}`);
-  }
 
   await browser.close();
   await rm(buildDir, { recursive: true, force: true });

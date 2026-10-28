@@ -49,8 +49,8 @@ para que o histórico continue legível sem um arquivo por release.
 5. **Editor de automação** com o painel fechado.
 6. **Limpeza do stage** ao desinstalar/desativar o plugin — a API não expõe
    callback de unload.
-7. **Mídia**: os cinco arquivos de `docs/media/` existem e são gerados por
-   `npm run media` a partir do próprio overlay e da UI (ver
+7. **Mídia**: os sete prints do painel e o `targets.png` em `docs/media/` são
+   gerados por `npm run media` a partir do build (ver
    [docs/media/README.md](../media/README.md)). Falta apenas confirmar o visual
    em uma saída real — a mídia atual é rotulada como renderização.
 
