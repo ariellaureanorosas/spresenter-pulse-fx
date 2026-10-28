@@ -49,10 +49,10 @@ para que o histórico continue legível sem um arquivo por release.
 5. **Editor de automação** com o painel fechado.
 6. **Limpeza do stage** ao desinstalar/desativar o plugin — a API não expõe
    callback de unload.
-7. **Mídia**: os sete prints do painel e o `targets.png` em `docs/media/` são
-   gerados por `npm run media` a partir do build (ver
-   [docs/media/README.md](../media/README.md)). Falta apenas confirmar o visual
-   em uma saída real — a mídia atual é rotulada como renderização.
+7. **Mídia**: a arte de abertura (`hero.png`), os sete prints de cartão e o
+   `targets.png` em `docs/media/` são gerados por `npm run media` a partir do
+   build (ver [docs/media/README.md](../media/README.md)). Falta apenas confirmar
+   o visual em uma saída real — os prints são rotulados como renderização.
 
 ## Decisões que vieram de verificação
 
