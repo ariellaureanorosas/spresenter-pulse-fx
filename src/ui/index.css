@@ -1375,6 +1375,13 @@ fieldset {
   line-height: 1.3;
 }
 
+/* Os extremos nunca quebram: "20,0 Hz" partia em "20,0" / "Hz" quando o
+   slider ficava estreito. A dica central continua podendo quebrar. */
+.pfx-range-foot > span:first-child,
+.pfx-range-foot > span:last-child {
+  white-space: nowrap;
+}
+
 .pfx-range-hint {
   color: var(--pfx-muted);
   font-size: 9px;
@@ -1575,6 +1582,7 @@ fieldset {
 .pfx-safety-labels span {
   position: absolute;
   top: 0;
+  white-space: nowrap;
 }
 
 .pfx-safety-labels span:nth-child(1) {
@@ -1587,9 +1595,10 @@ fieldset {
   transform: translateX(-50%);
 }
 
+/* Ancorado à direita: com `left: 100%` o texto ficava com largura zero para
+   quebrar e "20,0 Hz" saía em duas linhas. */
 .pfx-safety-labels span:nth-child(3) {
-  left: 100%;
-  transform: translateX(-100%);
+  right: 0;
 }
 
 /* ── Run status ────────────────────────────────────────────── */

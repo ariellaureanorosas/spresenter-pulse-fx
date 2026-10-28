@@ -5,6 +5,17 @@ Todas as mudanças notáveis deste projeto são documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.3.2] - 2026-10-28
+
+### Corrigido
+
+- **Rótulos numéricos quebravam em duas linhas.** No cartão Proteção, `20,0 Hz`
+  saía como `20,0` / `Hz`: o rótulo da ponta direita da escala era posicionado
+  com `left: 100%` e ficava com largura zero para quebrar. Ele passou a ser
+  ancorado à direita, e os três rótulos da escala não quebram mais. Os extremos
+  do rodapé dos sliders (mínimo e máximo) também ganharam `nowrap`, para o caso
+  do painel estreito; a dica central continua podendo quebrar.
+
 ## [1.3.1] - 2026-10-28
 
 ### Corrigido
@@ -152,6 +163,7 @@ Primeira versão instalável do Pulse FX.
 - Documentação de arquitetura, decisões técnicas e registro da verificação no
   app real (Spresenter 0.3.50).
 
+[1.3.2]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.3.2
 [1.3.1]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.3.1
 [1.3.0]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.3.0
 [1.2.1]: https://github.com/ariellaureanorosas/spresenter-pulse-fx/releases/tag/v1.2.1

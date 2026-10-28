@@ -24,6 +24,7 @@ para que o histórico continue legível sem um arquivo por release.
 |---|---|---|---|---|
 | 2026-10-25 | 1.0.0 | Spresenter 0.3.50, Windows | boot e handshake do painel; **Disparar hit** em camada livre produziu o flash na saída | [spresenter-0.3.50](2026-10-25-spresenter-0.3.50.md) |
 | 2026-10-25 | 1.1.0 | Windows + CI | gate completo; `EPERM` de reinstalação reproduzido e resolvido; CI e release reais | [profissionalizacao](2026-10-25-profissionalizacao.md) |
+| 2026-10-28 | 1.3.1 | Spresenter 0.3.50, Windows | prévia com xadrez e clique para repetir; hit de 10 s sem re-disparo; strobe e pulse contínuos; automação com painel fechado; parar e limpar; desinstalação; visual real confere com a mídia | [spresenter-0.3.50](2026-10-28-spresenter-0.3.50.md) |
 | 2026-10-28 | 1.3.1 | GitHub público | rulesets de `main` e de tag ativos, push direto recusado, relato privado e secret scanning ligados, ZIP baixado sem autenticação com checksum conferido | [GITHUB-SETTINGS](../GITHUB-SETTINGS.md#estado-verificado) |
 
 ## O que já foi confirmado no app, por versão
@@ -32,27 +33,17 @@ para que o histórico continue legível sem um arquivo por release.
 |---|---|---|
 | 1.0.0 | overlay, hit, prévia, handshake | confirmado em 0.3.50 |
 | 1.1.0 | qualidade e empacotamento, sem mudança de palco | confirmado por gate e instalação |
-| 1.2.0 | prévia sem `<iframe>`, xadrez, clique para repetir | instalado; confirmação visual pendente |
-| 1.2.1 | dica "Repetir" sobre o palco removida | instalado; bundle sem a dica; confirmação visual pendente |
-| 1.3.0 | queda do Hit até 10 s | instalado; queda longa a conferir em saída real |
-| 1.3.1 | hit deixa de re-disparar ao mudar parâmetros | corrigido e coberto por teste; conferir na saída real |
+| 1.2.0 | prévia sem `<iframe>`, xadrez, clique para repetir | confirmado em 0.3.50 |
+| 1.2.1 | dica "Repetir" sobre o palco removida | confirmado em 0.3.50 |
+| 1.3.0 | queda do Hit até 10 s | confirmado em 0.3.50 |
+| 1.3.1 | hit deixa de re-disparar ao mudar parâmetros | confirmado em 0.3.50 |
+| 1.3.2 | rótulo do valor máximo não quebra mais em duas linhas | aguardando conferência visual |
 
 ## Pendências manuais
 
-1. **Prévia** (1.2.0 a 1.3.0): conferir xadrez escuro, clique no palco e escala
-   de moldura/vinheta em uma saída real.
-2. **Queda longa**: conferir que um hit de 10 s permanece no palco até o fim e
-   limpa 120 ms depois.
-3. **Hit sem re-disparo** (1.3.1): conferir na saída real que mexer em sliders
-   durante a queda não gera um novo flash.
-4. **Strobe e Pulse contínuos** em todas as saídas.
-5. **Editor de automação** com o painel fechado.
-6. **Limpeza do stage** ao desinstalar/desativar o plugin — a API não expõe
-   callback de unload.
-7. **Mídia**: a arte de abertura (`hero.png`), os sete prints de cartão e o
-   `targets.png` em `docs/media/` são gerados por `npm run media` a partir do
-   build (ver [docs/media/README.md](../media/README.md)). Falta apenas confirmar
-   o visual em uma saída real — os prints são rotulados como renderização.
+1. **Rótulo do slider** (1.3.2): conferir no app que `20,0 Hz` aparece em uma
+   linha só no cartão Proteção e que a dica central não ficou cortada nos
+   sliders estreitos.
 
 ## Decisões que vieram de verificação
 
