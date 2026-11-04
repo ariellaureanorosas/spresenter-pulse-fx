@@ -27,6 +27,8 @@ export interface StartRequest {
   mode: 'strobe' | 'pulse';
   /** Campos aceitos, já validados, no formato que `automationParams` espera. */
   config: Record<string, unknown>;
+  /** Aplica a frequência pedida mesmo com a trava de 3 Hz ligada. */
+  ignoreSafetyLock: boolean;
 }
 
 export interface StopRequest {
@@ -34,8 +36,14 @@ export interface StopRequest {
   force: boolean;
 }
 
-const MODES = new Set(['strobe', 'pulse']);
+export interface SafetyLockRequest {
+  enabled: boolean;
+}
+
+const MODES = new Set(['strobe', 'pulse', 'hit']);
 const TARGETS = new Set(['full', 'vignette', 'frame']);
+const TRUTHY = new Set(['true', '1', 'on', 'yes', 'ligar', 'ligada', 'ativo', 'ativa']);
+const FALSY = new Set(['false', '0', 'off', 'no', 'desligar', 'desligada', 'inativo', 'inativa']);
 
 const NUMBER_FIELDS = [
   'intensity',
@@ -149,7 +157,7 @@ export function parseStartRequest(raw: unknown): Parsed<StartRequest> {
       ? 'strobe'
       : String(body.mode).trim().toLowerCase();
   if (!MODES.has(mode)) {
-    return fail('mode inválido: use "strobe" ou "pulse" (hit é disparo único, não contínuo).');
+    return fail('mode inválido: use "strobe", "pulse" ou "hit".');
   }
 
   const targetFields = readTargetFields(body);
@@ -169,7 +177,35 @@ export function parseStartRequest(raw: unknown): Parsed<StartRequest> {
     if (numeric.value !== undefined) config[field] = numeric.value;
   }
 
-  return { ok: true, value: { mode: mode as StartRequest['mode'], config } };
+  const ignoreSafetyLock = readIgnoreSafetyLock(body);
+  if (!ignoreSafetyLock.ok) return ignoreSafetyLock;
+
+  return {
+    ok: true,
+    value: {
+      mode: mode as StartRequest['mode'],
+      config,
+      ignoreSafetyLock: ignoreSafetyLock.value,
+    },
+  };
+}
+
+/**
+ * `ignoreSafetyLock` só vale `true` ou `false`; omitido é `false`.
+ *
+ * O padrão precisa ser "obedecer a trava": um botão antigo, sem o campo, nunca
+ * pode passar a furar a proteção de fotossensibilidade por acidente.
+ */
+function readIgnoreSafetyLock(body: Record<string, unknown>): Parsed<boolean> {
+  const value = body.ignoreSafetyLock;
+  if (!hasValue(value)) return { ok: true, value: false };
+  if (typeof value === 'boolean') return { ok: true, value };
+
+  const text = String(value).trim().toLowerCase();
+  if (TRUTHY.has(text)) return { ok: true, value: true };
+  if (FALSY.has(text)) return { ok: true, value: false };
+
+  return fail('ignoreSafetyLock inválido: use true ou false.');
 }
 
 /**
@@ -188,4 +224,26 @@ export function parseStopRequest(raw: unknown): Parsed<StopRequest> {
   const force = body.force === true || String(body.force).trim().toLowerCase() === 'true';
 
   return { ok: true, value: { config: targetFields.value, force } };
+}
+
+/**
+ * Valida e monta o pedido de `safetyLock` (ligar/desligar a trava de 3 Hz).
+ *
+ * O pedido é sempre explícito: o plugin não alterna sozinho, para que dois
+ * clientes clicando ao mesmo tempo não dependam da ordem de leitura do estado.
+ */
+export function parseSafetyLockRequest(raw: unknown): Parsed<SafetyLockRequest> {
+  const body = readBody(raw);
+  const value = hasValue(body.enabled) ? body.enabled : body.safetyLock;
+
+  if (typeof value === 'boolean') return { ok: true, value: { enabled: value } };
+  if (!hasValue(value)) {
+    return fail('enabled é obrigatório: use true para ligar a trava e false para desligar.');
+  }
+
+  const text = String(value).trim().toLowerCase();
+  if (TRUTHY.has(text)) return { ok: true, value: { enabled: true } };
+  if (FALSY.has(text)) return { ok: true, value: { enabled: false } };
+
+  return fail('enabled inválido: use true ou false.');
 }

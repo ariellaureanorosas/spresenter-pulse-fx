@@ -22,10 +22,10 @@ async function expectStatus(promise: Promise<unknown>, status: number): Promise<
 }
 
 describe('ações externas', () => {
-  it('registra start, stop e state antes de qualquer await', async () => {
+  it('registra start, stop, safetyLock e state antes de qualquer await', async () => {
     const host = await loadLogic(createFakeHost());
 
-    expect([...host.requests.keys()].sort()).toEqual(['start', 'state', 'stop']);
+    expect([...host.requests.keys()].sort()).toEqual(['safetyLock', 'start', 'state', 'stop']);
   });
 
   it('liga o strobe no alvo informado e registra o dono external', async () => {
@@ -76,10 +76,124 @@ describe('ações externas', () => {
     expect(host.clamps().at(-1)).toMatchObject({ source: 'external', requestedHz: 8, hz: 3 });
   });
 
+  it('ignora a trava só no disparo e mantém a trava global ligada', async () => {
+    const host = await loadLogic(createFakeHost());
+
+    const response = (await host.callRequest('start', {
+      mode: 'strobe',
+      frequency: 8,
+      ignoreSafetyLock: true,
+    })) as {
+      effect: {
+        frequencyHz: number;
+        requestedHz: number;
+        clamped: boolean;
+        ignoreSafetyLock: boolean;
+      };
+    };
+
+    expect(response.effect).toMatchObject({
+      requestedHz: 8,
+      frequencyHz: 8,
+      clamped: false,
+      ignoreSafetyLock: true,
+    });
+    expect(host.lastState().params.safetyLock).toBe(true);
+
+    const state = (await host.callRequest('state')) as {
+      effects: Array<Record<string, unknown>>;
+    };
+    expect(state.effects[0]).toMatchObject({
+      frequencyHz: 8,
+      requestedHz: 8,
+      ignoreSafetyLock: true,
+    });
+  });
+
+  it('aceita ignoreSafetyLock em texto e recusa valor inválido', async () => {
+    const host = await loadLogic(createFakeHost());
+
+    const response = (await host.callRequest('start', {
+      mode: 'pulse',
+      frequency: 6,
+      ignoreSafetyLock: 'true',
+    })) as { effect: { frequencyHz: number } };
+    expect(response.effect.frequencyHz).toBe(6);
+
+    await expectStatus(host.callRequest('start', { ignoreSafetyLock: 'talvez' }), 400);
+  });
+
+  it('aceita mode hit como disparo único', async () => {
+    const host = await loadLogic(createFakeHost());
+
+    // Desliga a trava para testar hit sem clamp
+    await host.callRequest('safetyLock', { enabled: false });
+
+    const response = (await host.callRequest('start', {
+      mode: 'hit',
+      frequency: 10,
+      decayMs: 500,
+    })) as {
+      effect: { mode: string; frequencyHz: number };
+    };
+
+    expect(response.effect).toMatchObject({
+      mode: 'hit',
+      frequencyHz: 10,
+    });
+  });
+
+  it('desligar a trava acelera o efeito de botão para a frequência pedida', async () => {
+    const host = await loadLogic(createFakeHost());
+
+    await host.callRequest('start', { mode: 'strobe', frequency: 8 });
+    expect(host.lastState().effects[0]).toMatchObject({ owner: 'external' });
+
+    const before = (await host.callRequest('state')) as {
+      effects: Array<Record<string, unknown>>;
+    };
+    expect(before.effects[0]).toMatchObject({ frequencyHz: 3, requestedHz: 8 });
+
+    await host.callRequest('safetyLock', { enabled: false });
+    await host.advance(100);
+
+    const after = (await host.callRequest('state')) as {
+      effects: Array<Record<string, unknown>>;
+    };
+    expect(after.effects[0]).toMatchObject({
+      frequencyHz: 8,
+      requestedHz: 8,
+      ignoreSafetyLock: false,
+    });
+  });
+
+  it('ligar a trava derruba o modo ignorar de um efeito em execução', async () => {
+    const host = await loadLogic(createFakeHost());
+
+    await host.callRequest('start', {
+      mode: 'pulse',
+      frequency: 8,
+      ignoreSafetyLock: true,
+    });
+    await host.callRequest('safetyLock', { enabled: true });
+    await host.advance(100);
+
+    const state = (await host.callRequest('state')) as {
+      safetyLock: boolean;
+      effects: Array<Record<string, unknown>>;
+    };
+    expect(state.safetyLock).toBe(true);
+    expect(state.effects[0]).toMatchObject({
+      frequencyHz: 3,
+      requestedHz: 8,
+      ignoreSafetyLock: false,
+    });
+  });
+
   it('recusa modo inválido com 400', async () => {
     const host = await loadLogic(createFakeHost());
 
-    const error = await expectStatus(host.callRequest('start', { mode: 'hit' }), 400);
+    const error = await expectStatus(host.callRequest('start', { mode: 'invalido' }), 400);
     expect(error.message).toMatch(/mode inválido/);
     expect(host.applications).toHaveLength(0);
   });
@@ -167,6 +281,56 @@ describe('ações externas', () => {
 
     expect(response.stopped).toBe(true);
     expect(host.lastState().effects).toHaveLength(0);
+  });
+
+  it('desliga a trava de 3 Hz pela API, salva e libera frequências maiores', async () => {
+    const host = await loadLogic(createFakeHost());
+
+    const response = (await host.callRequest('safetyLock', { enabled: false })) as {
+      ok: boolean;
+      safetyLock: boolean;
+    };
+
+    expect(response).toEqual({ ok: true, safetyLock: false });
+    expect(host.lastState().params.safetyLock).toBe(false);
+    await host.advance(1000);
+    expect(host.storageWrites.some((write) => write.key === 'pulsefx.settings')).toBe(true);
+
+    const started = (await host.callRequest('start', {
+      mode: 'strobe',
+      frequency: 8,
+      output: '0',
+      layer: 5,
+    })) as { effect: Record<string, unknown> };
+
+    expect(started.effect).toMatchObject({ frequencyHz: 8, clamped: false });
+  });
+
+  it('religa a trava e volta a limitar o pedido a 3 Hz', async () => {
+    const host = await loadLogic(createFakeHost());
+
+    await host.callRequest('safetyLock', { enabled: false });
+    await host.callRequest('safetyLock', { enabled: true });
+
+    const started = (await host.callRequest('start', {
+      mode: 'strobe',
+      frequency: 8,
+      output: '0',
+      layer: 5,
+    })) as { effect: Record<string, unknown> };
+
+    expect(host.lastState().params.safetyLock).toBe(true);
+    expect(started.effect).toMatchObject({ frequencyHz: 3, clamped: true });
+  });
+
+  it('recusa safetyLock sem enabled ou com valor inválido', async () => {
+    const host = await loadLogic(createFakeHost());
+
+    const missing = await expectStatus(host.callRequest('safetyLock', {}), 400);
+    expect(missing.message).toContain('enabled');
+
+    const invalid = await expectStatus(host.callRequest('safetyLock', { enabled: 'talvez' }), 400);
+    expect(invalid.message).toContain('enabled');
   });
 
   it('state devolve efeitos, trava e a lista de saídas e camadas', async () => {

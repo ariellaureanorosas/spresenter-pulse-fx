@@ -5,6 +5,48 @@ Todas as mudanças notáveis deste projeto são documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.4.3] - 2026-11-04
+
+### Adicionado
+
+- **`hit` na API externa**: modo de disparo único agora aceito em `start`. O efeito roda uma vez e para automaticamente após o `decayMs`. Útil para flashes pontuais sem segurar botão.
+
+## [1.4.2] - 2026-11-04
+
+### Adicionado
+
+- **`ignoreSafetyLock` no `start`**: um disparo específico pode usar a frequência
+  pedida mesmo com a trava de 3 Hz ligada, sem alterar a configuração global. O
+  teto técnico de 20 Hz continua valendo. É o que permite um botão do Companion
+  que ignora a trava enquanto outro obedece.
+- **Frequência pedida preservada por efeito**: `state` agora expõe
+  `requestedHz` (o pedido), `frequencyHz` (o aplicado) e `ignoreSafetyLock`.
+
+### Alterado
+
+- **Desligar a trava acelera os efeitos em execução.** Efeitos iniciados pela API
+  e pela automação que estavam reduzidos passam na hora para a frequência pedida;
+  não é mais necessário soltar e apertar o botão. Efeitos do painel continuam
+  como estão.
+- **Ligar a trava vale até para quem pediu para ignorar**: os efeitos em execução
+  voltam a 3 Hz e o modo "ignorar" é descartado até o próximo `start`.
+- Um pedido explícito de ligar a trava também é eficaz quando ela **já estava
+  ligada** e havia um efeito disparado com `ignoreSafetyLock`.
+
+## [1.4.1] - 2026-11-04
+
+### Adicionado
+
+- **`safetyLock`**: liga ou desliga a trava de 3 Hz pela API externa, com pedido
+  explícito (`{ "enabled": false }`), sem alternância implícita. A mudança vale
+  para o painel, a automação e a API, e fica salva. Isso permite um botão no
+  Companion em vez de abrir o painel do plugin no meio da operação.
+
+### Corrigido
+
+- **Envelope da API documentado.** O Spresenter entrega o retorno do plugin
+  dentro de `data`; a referência não dizia isso e clientes liam o topo do JSON.
+
 ## [1.4.0] - 2026-11-03
 
 ### Adicionado

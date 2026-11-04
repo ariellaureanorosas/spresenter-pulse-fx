@@ -27,6 +27,22 @@ curl -H "Authorization: Bearer <token>" \
   http://127.0.0.1:5050/api/v1/plugins/com.spresenter.pulse-fx/requests/state
 ```
 
+## Envelope da resposta
+
+A API do Spresenter embrulha o retorno do plugin. O que este documento descreve
+é o conteúdo de `data`:
+
+```json
+{
+  "pluginId": "com.spresenter.pulse-fx",
+  "action": "state",
+  "data": { "ok": true, "version": "1.4.2", "effects": [] }
+}
+```
+
+Erros não usam o envelope: vêm com o status HTTP (`400`, `404`, `409`, `401`) e
+uma mensagem em português.
+
 ## Ações
 
 ### `start` — ligar o efeito contínuo
@@ -36,7 +52,7 @@ atualiza os parâmetros e mantém **um** efeito.
 
 | Campo | Tipo | Padrão | Observação |
 |---|---|---|---|
-| `mode` | string | `strobe` | `strobe` ou `pulse`. `hit` não é contínuo. |
+| `mode` | string | `strobe` | `strobe`, `pulse` ou `hit` (disparo único). |
 | `frequency` | number | `2` | 0,5 a 20; a trava limita a 3 Hz. |
 | `color` | string | `#ffffff` | Hex ou `rgb(…)`; formato inválido cai no branco. |
 | `intensity` | number | `85` | 0 a 100. |
@@ -46,6 +62,7 @@ atualiza os parâmetros e mantém **um** efeito.
 | `softness` | number | `50` | 0 a 100 (vinheta/moldura). |
 | `output` | string | seleção salva | Índice da saída. |
 | `layer` | number | seleção salva | 0 a 99. |
+| `ignoreSafetyLock` | boolean | `false` | `true` aplica a frequência pedida mesmo com a trava ligada. |
 
 Resposta:
 
@@ -58,14 +75,41 @@ Resposta:
     "mode": "strobe",
     "frequencyHz": 3,
     "requestedHz": 8,
-    "clamped": true
+    "clamped": true,
+    "ignoreSafetyLock": false
   }
 }
 ```
 
-`frequencyHz` é o valor **realmente aplicado**; `clamped` diz se a trava de
-segurança reduziu o pedido. A trava é uma configuração global e não pode ser
-alterada por esta API.
+`frequencyHz` é o valor **realmente aplicado**; `requestedHz` é o pedido antes
+da trava; `clamped` diz se a trava (ou o teto técnico) reduziu o pedido. Para
+ligar ou desligar a trava, use `safetyLock`.
+
+`ignoreSafetyLock` vale **só para este disparo** e não altera a configuração
+global. O teto técnico de 20 Hz continua valendo: nenhum pedido passa disso. Use
+com consciência — a trava de 3 Hz existe para reduzir risco de fotossensibilidade.
+
+### `safetyLock` — trava de 3 Hz
+
+| Campo | Tipo | Padrão | Observação |
+|---|---|---|---|
+| `enabled` | boolean | obrigatório | `true` liga a trava; `false` libera até 20 Hz. |
+
+```json
+{ "ok": true, "safetyLock": false }
+```
+
+O pedido é sempre explícito — o plugin não alterna sozinho, para que dois
+clientes clicando ao mesmo tempo não dependam da ordem de leitura do estado.
+A mudança vale para o painel, a automação e a API, e fica salva nas
+configurações.
+
+Desligar a trava **acelera na hora** os efeitos iniciados pela API e pela
+automação que estavam reduzidos: eles passam para a frequência pedida, sem
+precisar de um novo `start`. Efeitos do painel ficam como estão, porque o valor
+original já foi reduzido quando entrou. Ligar a trava reduz imediatamente o que
+estiver acima de 3 Hz e **descarta o `ignoreSafetyLock`** dos efeitos em
+execução: segurança vence.
 
 ### `stop` — desligar o efeito contínuo
 
@@ -92,14 +136,27 @@ Devolve o que um cliente precisa para se situar: efeitos ativos, trava de
 segurança, seleção salva e a lista de saídas e camadas (para montar menus em vez
 de exigir números digitados).
 
+Cada efeito traz a frequência aplicada (`frequencyHz`), a pedida antes da trava
+(`requestedHz`) e se foi disparado com `ignoreSafetyLock`. É com isso que um
+cliente sabe se o efeito vai acelerar quando a trava for desligada.
+
 ```json
 {
   "ok": true,
-  "version": "1.4.0",
+  "version": "1.4.2",
   "safetyLock": true,
   "selection": { "output": "0", "layer": 5 },
   "effects": [
-    { "output": "1", "layer": 3, "mode": "strobe", "owner": "external", "startedAt": 1793756300170 }
+    {
+      "output": "1",
+      "layer": 3,
+      "mode": "strobe",
+      "owner": "external",
+      "startedAt": 1793756300170,
+      "frequencyHz": 3,
+      "requestedHz": 8,
+      "ignoreSafetyLock": false
+    }
   ],
   "outputs": [{ "index": 0, "name": "Principal", "disabledLayers": [] }],
   "layers": [{ "index": 5, "name": "Sobreposição" }]
@@ -108,7 +165,11 @@ de exigir números digitados).
 
 ## Bitfocus Companion
 
-Use o módulo **HTTP genérico**, com dois gatilhos no mesmo botão:
+O caminho recomendado é o módulo **Spresenter Pulse FX**
+(`companion-module-spresenter-pulse-fx`), com botões momentâneos, alternância,
+feedback de efeito ativo e botão da trava de 3 Hz.
+
+Sem o módulo, use o **HTTP genérico**, com dois gatilhos no mesmo botão:
 
 | Gatilho | Método | URL | Corpo |
 |---|---|---|---|
@@ -134,7 +195,9 @@ plugin só sabe ligar e desligar.
 - **Overlay:** se a camada ainda não tem o palco do Pulse FX, ele é aplicado
   automaticamente. Camada com conteúdo de terceiros é substituída, com aviso no
   painel; o conteúdo anterior não é restaurado.
-- **Trava:** vale para a API como vale para o painel e a automação.
+- **Trava:** vale para a API como vale para o painel e a automação. O campo
+  `ignoreSafetyLock` permite furar a trava em um disparo específico, sem mudar a
+  configuração global; o teto de 20 Hz continua valendo.
 - **`GET`:** um `GET` na mesma rota recebe a query string como payload, para
   clientes que só emitem URL. O plugin também aceita corpo JSON em texto.
 
