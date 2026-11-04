@@ -6,8 +6,8 @@
 // persiste as preferências.
 
 import { log } from './logic/logger';
-import type { StartRequest, StopRequest } from './logic/requests';
-import { parseStartRequest, parseStopRequest } from './logic/requests';
+import type { SafetyLockRequest, StartRequest, StopRequest } from './logic/requests';
+import { parseSafetyLockRequest, parseStartRequest, parseStopRequest } from './logic/requests';
 import { parseUiCommand, type UiCommand } from './shared/messages';
 import { buildOverlayHtml } from './shared/overlay';
 import {
@@ -83,6 +83,10 @@ interface AppliedInfo {
 interface EffectRuntime {
   effect: ActiveEffect;
   params: FxParams;
+  /** Frequência pedida, antes da trava. Permite acelerar quando a trava cai. */
+  requestedHz: number;
+  /** Disparado com "ignorar trava": mantém a frequência pedida mesmo com a trava ligada. */
+  ignoreSafetyLock: boolean;
   token: string;
   timer: TimerHandle | null;
 }
@@ -361,16 +365,28 @@ async function setStageHtml(target: Selection, html: string, silent = false): Pr
   }
 }
 
+interface PlayEffectOptions {
+  /** Frequência pedida pelo cliente; sem ela, vale a já normalizada em `effectParams`. */
+  requestedHz?: number;
+  /** `true` aplica a frequência pedida mesmo com a trava ligada. */
+  ignoreSafetyLock?: boolean;
+}
+
 async function playEffect(
   target: Selection,
   mode: PulseMode,
   effectParams: FxParams,
   owner: EffectOwner,
+  options: PlayEffectOptions = {},
 ): Promise<boolean> {
   const key = targetKey(target.output, target.layer);
+  const requestedHz = options.requestedHz ?? effectParams.frequencyHz;
+  const ignoreSafetyLock = options.ignoreSafetyLock === true;
+  const lockForRender = ignoreSafetyLock ? false : effectParams.safetyLock;
+  const requested = clampFrequency(requestedHz, lockForRender).requestedHz;
   const normalized = normalizeParamsWithMeta(
-    { ...effectParams, mode },
-    effectParams.safetyLock,
+    { ...effectParams, mode, frequencyHz: requested },
+    lockForRender,
   ).params;
   const token = makeRenderToken();
   const html = buildOverlayHtml(normalized, { token });
@@ -399,6 +415,8 @@ async function playEffect(
       owner,
     },
     params: normalized,
+    requestedHz: requested,
+    ignoreSafetyLock,
     token,
     timer: null,
   };
@@ -1163,6 +1181,8 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
     token: runtime.token,
     effect: { ...runtime.effect },
     params: { ...runtime.params },
+    requestedHz: runtime.requestedHz,
+    ignoreSafetyLock: runtime.ignoreSafetyLock,
   }));
 
   for (const item of snapshot) {
@@ -1183,7 +1203,8 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
     if (item.effect.owner === 'ui') {
       await playEffect(target, item.effect.mode, { ...params, mode: item.effect.mode }, 'ui');
     } else {
-      const clamp = clampFrequency(item.params.frequencyHz, params.safetyLock);
+      const lock = item.ignoreSafetyLock ? false : params.safetyLock;
+      const clamp = clampFrequency(item.requestedHz, lock);
       if (clamp.clamped || clamp.invalid) {
         noteClamp(clamp, item.effect.owner === 'external' ? 'external' : 'automation');
       }
@@ -1193,16 +1214,21 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
         {
           ...item.params,
           frequencyHz: clamp.hz,
-          safetyLock: params.safetyLock,
+          safetyLock: lock,
           mode: item.effect.mode,
         },
         item.effect.owner,
+        { requestedHz: item.requestedHz, ignoreSafetyLock: item.ignoreSafetyLock },
       );
     }
   }
 }
 
-async function applyParamEffects(previous: FxParams, next: FxParams): Promise<void> {
+async function applyParamEffects(
+  previous: FxParams,
+  next: FxParams,
+  patch: Partial<FxParams> = {},
+): Promise<void> {
   const uiRuntimes = [...effects.entries()].filter(([, runtime]) => runtime.effect.owner === 'ui');
 
   if (previous.mode !== next.mode) {
@@ -1225,18 +1251,38 @@ async function applyParamEffects(previous: FxParams, next: FxParams): Promise<vo
     scheduleRerender(true, false);
   }
 
-  if (!previous.safetyLock && next.safetyLock) {
-    const externalNeedsClamp = [...effects.values()].some(
+  // Desligar a trava devolve a frequência pedida a quem estava reduzido.
+  if (previous.safetyLock && !next.safetyLock) {
+    const externalNeedsBoost = [...effects.values()].some(
       (runtime) =>
         runtime.effect.owner !== 'ui' &&
-        (clampFrequency(runtime.params.frequencyHz, true).clamped ||
-          clampFrequency(runtime.params.frequencyHz, true).invalid),
+        !runtime.ignoreSafetyLock &&
+        clampFrequency(runtime.requestedHz, false).hz > runtime.params.frequencyHz + 0.001,
     );
+    if (externalNeedsBoost) scheduleRerender(false, true);
+  }
+
+  if (next.safetyLock && (patch.safetyLock !== undefined || !previous.safetyLock)) {
+    // Ligar a trava é um comando de segurança: vale até para quem pediu para
+    // ignorar. O modo "ignorar" cai junto, para não voltar num re-render futuro.
+    let externalNeedsClamp = false;
+    for (const runtime of effects.values()) {
+      if (runtime.effect.owner === 'ui') continue;
+      if (runtime.ignoreSafetyLock) {
+        runtime.ignoreSafetyLock = false;
+        externalNeedsClamp = true;
+      }
+      const clamp = clampFrequency(runtime.requestedHz, true);
+      if (clamp.clamped || clamp.invalid) externalNeedsClamp = true;
+    }
     if (externalNeedsClamp) scheduleRerender(false, true);
   }
 }
 
-async function handleSetParams(patch: Partial<FxParams>): Promise<void> {
+async function handleSetParams(
+  patch: Partial<FxParams>,
+  source: ClampSource = 'ui',
+): Promise<void> {
   const previous = params;
   const merged: Record<string, unknown> = { ...params };
   const allowed = new Set<keyof FxParams>([
@@ -1262,16 +1308,16 @@ async function handleSetParams(patch: Partial<FxParams>): Promise<void> {
   const safetyRaised = !previous.safetyLock && next.safetyLock;
 
   if (frequencyTouched) {
-    noteClamp(clampFrequency(patch.frequencyHz, next.safetyLock), 'ui');
+    noteClamp(clampFrequency(patch.frequencyHz, next.safetyLock), source);
   } else if (safetyRaised && previous.frequencyHz > next.frequencyHz + 0.001) {
-    noteClamp(clampFrequency(previous.frequencyHz, true), 'ui');
+    noteClamp(clampFrequency(previous.frequencyHz, true), source);
   } else if (patch.safetyLock !== undefined) {
-    noteClamp(clampFrequency(next.frequencyHz, next.safetyLock), 'ui');
+    noteClamp(clampFrequency(next.frequencyHz, next.safetyLock), source);
   }
 
   params = next;
   schedulePersist();
-  await applyParamEffects(previous, next);
+  await applyParamEffects(previous, next, patch);
   await emitState();
 }
 
@@ -1319,13 +1365,14 @@ function automationParams(
   config: AutomationConfig,
   mode: PulseMode,
   source: ClampSource = 'automation',
+  safetyLock: boolean = params.safetyLock,
 ): FxParams {
   // Nós de automação têm parâmetros próprios: campos não informados usam os
   // padrões do plugin, não o estado atual do painel. A trava, porém, é uma
   // configuração global e vale para o painel e para a automação.
   const merged: Record<string, unknown> = {
     ...DEFAULT_PARAMS,
-    safetyLock: params.safetyLock,
+    safetyLock,
   };
   const fields: Array<keyof FxParams> = [
     'color',
@@ -1679,6 +1726,7 @@ interface ExternalEffectSummary {
   frequencyHz: number;
   requestedHz: number;
   clamped: boolean;
+  ignoreSafetyLock: boolean;
 }
 
 function summarizeExternalEffect(
@@ -1686,6 +1734,7 @@ function summarizeExternalEffect(
   mode: PulseMode,
   appliedParams: FxParams,
   requestedHz: number,
+  ignoreSafetyLock: boolean,
 ): ExternalEffectSummary {
   const clamp = clampFrequency(requestedHz, appliedParams.safetyLock);
   return {
@@ -1695,6 +1744,7 @@ function summarizeExternalEffect(
     frequencyHz: appliedParams.frequencyHz,
     requestedHz: clamp.requestedHz,
     clamped: clamp.clamped || clamp.invalid,
+    ignoreSafetyLock,
   };
 }
 
@@ -1713,7 +1763,14 @@ async function externalStart(request: StartRequest): Promise<unknown> {
     request.config.frequency === undefined
       ? DEFAULT_PARAMS.frequencyHz
       : Number(request.config.frequency);
-  const effectParams = automationParams(request.config, request.mode, 'external');
+  // Ignorar a trava vale só para este disparo: a configuração global não muda.
+  const ignoreSafetyLock = request.ignoreSafetyLock;
+  const effectParams = automationParams(
+    request.config,
+    request.mode,
+    'external',
+    ignoreSafetyLock ? false : params.safetyLock,
+  );
 
   if (!(await prepareStageTarget(target, 'external', EXTERNAL_LABEL))) {
     throw spresenter.requests.error(
@@ -1722,14 +1779,25 @@ async function externalStart(request: StartRequest): Promise<unknown> {
     );
   }
 
-  if (!(await playEffect(target, request.mode, effectParams, 'external'))) {
+  if (
+    !(await playEffect(target, request.mode, effectParams, 'external', {
+      requestedHz,
+      ignoreSafetyLock,
+    }))
+  ) {
     throw spresenter.requests.error(409, 'Falha ao aplicar o efeito na camada.');
   }
 
   await emitState();
   return {
     ok: true,
-    effect: summarizeExternalEffect(target, request.mode, effectParams, requestedHz),
+    effect: summarizeExternalEffect(
+      target,
+      request.mode,
+      effectParams,
+      requestedHz,
+      ignoreSafetyLock,
+    ),
   };
 }
 
@@ -1753,6 +1821,13 @@ async function externalStop(request: StopRequest): Promise<unknown> {
   return { ok: true, stopped: true, owner };
 }
 
+async function externalSafetyLock(request: SafetyLockRequest): Promise<unknown> {
+  // Reaproveita o mesmo caminho do painel: valida, salva, reaplica o que estiver
+  // rodando e emite estado — assim o botão do Companion não fica dessincronizado.
+  await handleSetParams({ safetyLock: request.enabled }, 'external');
+  return { ok: true, safetyLock: params.safetyLock };
+}
+
 function externalState(): unknown {
   return {
     ok: true,
@@ -1760,7 +1835,12 @@ function externalState(): unknown {
     safetyLock: params.safetyLock,
     selection: { ...selection },
     effects: [...effects.values()]
-      .map((runtime) => ({ ...runtime.effect }))
+      .map((runtime) => ({
+        ...runtime.effect,
+        frequencyHz: runtime.params.frequencyHz,
+        requestedHz: runtime.requestedHz,
+        ignoreSafetyLock: runtime.ignoreSafetyLock,
+      }))
       .sort((a, b) => a.startedAt - b.startedAt),
     outputs: outputs.map((output) => ({
       index: output.index,
@@ -1817,6 +1897,22 @@ function registerRequests(): void {
       name: 'Desligar efeito contínuo',
       description: 'Desliga o efeito iniciado por esta API. Use force para qualquer dono.',
       sample: { output: '1', layer: 3 },
+    },
+  );
+
+  register(
+    'safetyLock',
+    async (payload) => {
+      const parsed = parseSafetyLockRequest(payload);
+      if (!parsed.ok) throw spresenter.requests.error(parsed.status, parsed.message);
+      await ensureReady();
+      return queue.run(() => externalSafetyLock(parsed.value));
+    },
+    {
+      name: 'Trava de segurança',
+      description:
+        'Liga ou desliga a trava de 3 Hz. Vale para o painel, a automação e a API, e fica salva.',
+      sample: { enabled: false },
     },
   );
 
