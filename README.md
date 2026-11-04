@@ -230,6 +230,31 @@ ajustado no painel. A seleção de saída/camada e a trava de segurança são
 compartilhadas com o painel; com a trava desligada, a automação também pode
 chegar ao teto técnico de 20 Hz.
 
+## Bitfocus Companion
+
+O Pulse FX aceita chamadas de fora em
+`POST /api/v1/plugins/com.spresenter.pulse-fx/requests/<ação>`. É o caminho para
+um botão do Companion acender enquanto está pressionado: o Companion manda
+`start` ao apertar e `stop` ao soltar.
+
+O plugin **não abre porta** e não faz conexões; quem chama é o Companion. Para
+funcionar, o Spresenter precisa estar com a **API externa ligada** e o token
+precisa ter o escopo `plugins:invoke`. A porta da API é a mostrada no app — na
+instalação de referência, `5050`.
+
+Com o módulo **HTTP genérico** do Companion, use dois gatilhos no mesmo botão:
+
+| Gatilho | URL | Corpo |
+|---|---|---|
+| Button down | `http://127.0.0.1:5050/api/v1/plugins/com.spresenter.pulse-fx/requests/start` | `{"mode":"strobe","frequency":8,"color":"#22d3ee","output":"1","layer":3}` |
+| Button up | `…/requests/stop` | `{"output":"1","layer":3}` |
+
+Cabeçalhos: `Authorization: Bearer <token>` e `Content-Type: application/json`.
+
+O efeito aparece no painel com a etiqueta **Companion**, e **Parar tudo**
+encerra inclusive o que veio de fora. A referência completa das ações, dos
+campos e dos erros está em [docs/EXTERNAL-API.md](docs/EXTERNAL-API.md).
+
 ## Persistência
 
 - Chave atual: `pulsefx.settings`, com `schemaVersion: 1`:
@@ -288,6 +313,7 @@ O mapa de módulos detalhado e as decisões de arquitetura estão em
 
 - [Arquitetura e decisões](docs/ARCHITECTURE.md)
 - [Protocolo UI ↔ lógica](docs/PROTOCOL.md)
+- [Ações externas (Companion)](docs/EXTERNAL-API.md)
 - [Compatibilidade e limitações](docs/COMPATIBILITY.md)
 - [Processo de release](docs/RELEASING.md)
 - [Configuração do GitHub](docs/GITHUB-SETTINGS.md)
@@ -302,6 +328,8 @@ O que depende do host e não é provado no repositório está detalhado em
 - Não há callback de unload: remova o overlay pelo painel antes de desinstalar.
 - `live.apply` substitui o conteúdo da camada; o plugin não o restaura.
 - A automação aplica e avisa, mas não abre modal de confirmação.
+- Um efeito iniciado pelo Companion permanece se o Companion for encerrado com
+  o botão pressionado; use **Parar tudo** no painel.
 - A projeção real depende do navegador embarcado do Spresenter.
 
 ## Solução de problemas

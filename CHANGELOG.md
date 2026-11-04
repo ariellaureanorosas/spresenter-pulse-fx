@@ -5,6 +5,21 @@ Todas as mudanças notáveis deste projeto são documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.4.0] - 2026-11-03
+
+### Adicionado
+
+- **Ações externas para o Bitfocus Companion.** `…/requests/start` liga e
+  `…/requests/stop` desliga o efeito contínuo, o que permite um botão que acende
+  enquanto é segurado — o comportamento *momentary* é do Companion. O plugin não
+  abre porta: quem chama é o Companion, com um token de escopo `plugins:invoke`.
+  O efeito iniciado de fora aparece no painel com a etiqueta **Companion**, entra
+  na mesma fila serial e respeita a trava de 3 Hz. `stop` sem `force` só encerra o
+  que veio de fora, para o "soltar" não derrubar um efeito do painel.
+- **`state`** devolve efeitos ativos, trava de segurança, seleção e a lista de
+  saídas e camadas, para clientes montarem menus em vez de exigir números.
+- Referência completa em [docs/EXTERNAL-API.md](docs/EXTERNAL-API.md).
+
 ## [1.3.2] - 2026-10-28
 
 ### Corrigido

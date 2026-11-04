@@ -26,6 +26,7 @@ para que o histórico continue legível sem um arquivo por release.
 | 2026-10-25 | 1.1.0 | Windows + CI | gate completo; `EPERM` de reinstalação reproduzido e resolvido; CI e release reais | [profissionalizacao](2026-10-25-profissionalizacao.md) |
 | 2026-10-28 | 1.3.1 | Spresenter 0.3.50, Windows | prévia com xadrez e clique para repetir; hit de 10 s sem re-disparo; strobe e pulse contínuos; automação com painel fechado; parar e limpar; desinstalação; visual real confere com a mídia | [spresenter-0.3.50](2026-10-28-spresenter-0.3.50.md) |
 | 2026-10-28 | 1.3.1 | GitHub público | rulesets de `main` e de tag ativos, push direto recusado, relato privado e secret scanning ligados, ZIP baixado sem autenticação com checksum conferido | [GITHUB-SETTINGS](../GITHUB-SETTINGS.md#estado-verificado) |
+| 2026-11-03 | 1.3.2 | Spresenter 0.3.50, Windows | reinstalação pelo ZIP depois de remover a pasta de 204 MB que causava `EPERM`; `20,0 Hz` em uma linha no cartão Proteção | [spresenter-0.3.50](2026-10-28-spresenter-0.3.50.md) |
 
 ## O que já foi confirmado no app, por versão
 
@@ -37,13 +38,11 @@ para que o histórico continue legível sem um arquivo por release.
 | 1.2.1 | dica "Repetir" sobre o palco removida | confirmado em 0.3.50 |
 | 1.3.0 | queda do Hit até 10 s | confirmado em 0.3.50 |
 | 1.3.1 | hit deixa de re-disparar ao mudar parâmetros | confirmado em 0.3.50 |
-| 1.3.2 | rótulo do valor máximo não quebra mais em duas linhas | aguardando conferência visual |
+| 1.3.2 | rótulo do valor máximo não quebra mais em duas linhas | confirmado em 0.3.50 |
 
 ## Pendências manuais
 
-1. **Rótulo do slider** (1.3.2): conferir no app que `20,0 Hz` aparece em uma
-   linha só no cartão Proteção e que a dica central não ficou cortada nos
-   sliders estreitos.
+Nenhuma. A conferência visual da 1.3.2 foi feita em 2026-11-03.
 
 ## Decisões que vieram de verificação
 

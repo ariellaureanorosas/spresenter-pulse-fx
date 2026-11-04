@@ -90,6 +90,7 @@ export class FakeHost {
   readonly messages: LogicMessage[] = [];
   readonly nodes: Array<Record<string, unknown>> = [];
   readonly categories: Array<Record<string, unknown>> = [];
+  readonly requests = new Map<string, (payload: unknown) => unknown>();
   readonly listeners = new Map<string, Set<() => void>>();
   readonly api: Record<string, unknown>;
 
@@ -174,6 +175,22 @@ export class FakeHost {
           this.nodes.push(definition);
         },
       },
+      requests: {
+        on: (action: string, handler: (payload: unknown) => unknown) => {
+          this.requests.set(action, handler);
+        },
+        off: (action: string) => {
+          this.requests.delete(action);
+        },
+        error: (status: number, message: string) => {
+          const error = new Error(message) as Error & { status?: number };
+          error.status = status;
+          return error;
+        },
+        call: async () => {
+          throw new Error('requests.call não é usado nos testes');
+        },
+      },
       on: (event: string, listener: () => void) => {
         if (!this.listeners.has(event)) this.listeners.set(event, new Set());
         this.listeners.get(event)?.add(listener);
@@ -223,6 +240,15 @@ export class FakeHost {
     ) => Promise<void>;
     await execute(null, config);
     await this.flush();
+  }
+
+  /** Chama uma ação externa como a API do Spresenter faria. */
+  async callRequest(action: string, payload: unknown = {}): Promise<unknown> {
+    const handler = this.requests.get(action);
+    if (!handler) throw new Error(`ação externa não registrada: ${action}`);
+    const result = await handler(payload);
+    await this.flush();
+    return result;
   }
 
   /** Emite um evento do host (`live` ou `state`). */
