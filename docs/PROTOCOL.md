@@ -4,6 +4,10 @@ A UI (`src/ui/`) e a lógica (`src/logic/`) conversam apenas por `postMessage`
 tipado. A fonte executável é `src/shared/messages.ts`; este documento é o
 catálogo legível. Em caso de divergência, o código vence.
 
+As chamadas de fora (Companion, scripts, outros plugins) **não** passam por este
+protocolo: elas chegam por `spresenter.requests` e têm contrato próprio em
+[docs/EXTERNAL-API.md](EXTERNAL-API.md).
+
 ## Regras gerais
 
 - A lógica é a **fonte da verdade**. A UI envia intenções e desenha o último

@@ -4,7 +4,7 @@
 
 | Componente | Versão | Observação |
 |---|---|---|
-| Pulse FX | 1.3.2 | Versão atual. |
+| Pulse FX | 1.4.0 | Versão atual. |
 | Spresenter | **0.3.50 ou superior** | `minAppVersion` no manifesto. |
 | SDK de plugins | **0.5.0** | Vendorizado em `sdk/spresenter-plugin-sdk.tgz`. |
 | Node.js (desenvolvimento) | **22.12 ou superior** | `.nvmrc` fixa 22.12.0; CI testa 22 e 24. |
@@ -31,7 +31,7 @@ Somente APIs documentadas e presentes no SDK vendorizado:
 | `outputs:read` | `outputs.list()`, `layers.list()` |
 | `live:read` | `live.read` para detectar ocupação e reconhecer o próprio stage |
 | `live:write` | `live.apply`, `live.setState`, `live.setElement`, `live.clear` |
-| — (sem escopo) | `storage.*`, `automation.registerNode/registerCategory`, `ui.*`, `on(...)` |
+| — (sem escopo) | `storage.*`, `automation.registerNode/registerCategory`, `requests.on`, `ui.*`, `on(...)` |
 
 `background: true` mantém a lógica viva para a automação. Nenhuma API interna ou
 não documentada é usada.
@@ -77,6 +77,9 @@ seguindo [docs/verification/README.md](verification/README.md).
    duas cópias do plugin não devem ser instaladas ao mesmo tempo.
 5. **Foto sensibilidade**: flashes rápidos podem incomodar. A trava de 3 Hz vem
    ligada; use-a sempre que possível.
+6. **Companion sem conexão viva**: as ações externas são chamadas pontuais, sem
+   sessão. Se o Companion for encerrado com um efeito ativo, o `stop` não chega e
+   o efeito permanece no palco até **Parar** ou **Parar tudo** no painel.
 
 ## Histórico de verificação
 

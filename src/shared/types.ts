@@ -5,8 +5,10 @@ export type PulseMode = 'hit' | 'strobe' | 'pulse';
 export type FxTarget = 'full' | 'vignette' | 'frame';
 
 export type ClampCause = 'safety' | 'technical';
-export type ClampSource = 'ui' | 'automation' | 'storage';
-export type EffectOwner = 'ui' | 'automation';
+export type ClampSource = 'ui' | 'automation' | 'external' | 'storage';
+/** Quem pediu o efeito: o painel, um nó de automação ou uma chamada externa
+ *  (Companion, script, outro plugin). Cada dono tem seus próprios parâmetros. */
+export type EffectOwner = 'ui' | 'automation' | 'external';
 export type ToastLevel = 'info' | 'success' | 'warning' | 'error';
 
 /** Parâmetros do efeito, já normalizados. `safetyLock` vive junto de propósito:

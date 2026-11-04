@@ -6,6 +6,8 @@
 // persiste as preferências.
 
 import { log } from './logic/logger';
+import type { StartRequest, StopRequest } from './logic/requests';
+import { parseStartRequest, parseStopRequest } from './logic/requests';
 import { parseUiCommand, type UiCommand } from './shared/messages';
 import { buildOverlayHtml } from './shared/overlay';
 import {
@@ -40,6 +42,7 @@ import {
 import type {
   ActiveEffect,
   ClampInfo,
+  ClampSource,
   EffectOwner,
   FxParams,
   LayerDto,
@@ -487,7 +490,7 @@ function noteClamp(clamp: ReturnType<typeof clampFrequency>, source: ClampInfo['
     lastClamp = null;
   }
 
-  if (!meaningful || source !== 'automation') return;
+  if (!meaningful || (source !== 'automation' && source !== 'external')) return;
 
   const signature = `${source}:${clamp.requestedHz}:${clamp.hz}:${clamp.cause ?? 'min'}:${clamp.invalid}`;
   const now = Date.now();
@@ -1166,7 +1169,7 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
     const current = effects.get(item.key);
     if (!current || current.token !== item.token) continue;
     if (item.effect.owner === 'ui' && !ui) continue;
-    if (item.effect.owner === 'automation' && !all) continue;
+    if (item.effect.owner !== 'ui' && !all) continue;
     // Hit é disparo único: re-renderizar aqui reiniciaria a animação do zero, e
     // qualquer ajuste de slider viraria um novo flash. A queda em curso termina
     // com os parâmetros do disparo; os novos valem do próximo em diante.
@@ -1181,7 +1184,9 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
       await playEffect(target, item.effect.mode, { ...params, mode: item.effect.mode }, 'ui');
     } else {
       const clamp = clampFrequency(item.params.frequencyHz, params.safetyLock);
-      if (clamp.clamped || clamp.invalid) noteClamp(clamp, 'automation');
+      if (clamp.clamped || clamp.invalid) {
+        noteClamp(clamp, item.effect.owner === 'external' ? 'external' : 'automation');
+      }
       await playEffect(
         target,
         item.effect.mode,
@@ -1191,7 +1196,7 @@ async function rerenderEffects(ui: boolean, all: boolean): Promise<void> {
           safetyLock: params.safetyLock,
           mode: item.effect.mode,
         },
-        'automation',
+        item.effect.owner,
       );
     }
   }
@@ -1221,13 +1226,13 @@ async function applyParamEffects(previous: FxParams, next: FxParams): Promise<vo
   }
 
   if (!previous.safetyLock && next.safetyLock) {
-    const automationNeedsClamp = [...effects.values()].some(
+    const externalNeedsClamp = [...effects.values()].some(
       (runtime) =>
-        runtime.effect.owner === 'automation' &&
+        runtime.effect.owner !== 'ui' &&
         (clampFrequency(runtime.params.frequencyHz, true).clamped ||
           clampFrequency(runtime.params.frequencyHz, true).invalid),
     );
-    if (automationNeedsClamp) scheduleRerender(false, true);
+    if (externalNeedsClamp) scheduleRerender(false, true);
   }
 }
 
@@ -1310,7 +1315,11 @@ function resolveAutomationTarget(config: AutomationConfig): Selection | null {
   return target;
 }
 
-function automationParams(config: AutomationConfig, mode: PulseMode): FxParams {
+function automationParams(
+  config: AutomationConfig,
+  mode: PulseMode,
+  source: ClampSource = 'automation',
+): FxParams {
   // Nós de automação têm parâmetros próprios: campos não informados usam os
   // padrões do plugin, não o estado atual do painel. A trava, porém, é uma
   // configuração global e vale para o painel e para a automação.
@@ -1336,29 +1345,33 @@ function automationParams(config: AutomationConfig, mode: PulseMode): FxParams {
   if (frequency !== undefined) merged.frequencyHz = frequency;
   merged.mode = mode;
   const { params: normalized, clamp } = normalizeParamsWithMeta(merged);
-  noteClamp(clamp, 'automation');
+  noteClamp(clamp, source);
   return normalized;
 }
 
-async function prepareAutomationTarget(target: Selection): Promise<boolean> {
+async function prepareStageTarget(
+  target: Selection,
+  owner: EffectOwner,
+  label: string,
+): Promise<boolean> {
   const key = targetKey(target.output, target.layer);
   if (applied.has(key)) return true;
 
   const probe = await probeLayer(target, true);
   if (probe.status === 'error') {
-    postToast('warning', 'Automação: camada não verificada; aplicando mesmo assim.');
+    postToast('warning', `${label}: camada não verificada; aplicando mesmo assim.`);
   } else if (probe.occupied && !probe.ours) {
     postToast(
       'warning',
-      `Automação: o conteúdo de ${targetDescription(target)} foi substituído pelo overlay.`,
+      `${label}: o conteúdo de ${targetDescription(target)} foi substituído pelo overlay.`,
     );
   }
 
   try {
-    await ensureStage(target, 'automation', true);
+    await ensureStage(target, owner, true);
     return true;
   } catch (error) {
-    postError(new Error(`Automação: falha ao aplicar overlay: ${errorMessage(error)}`));
+    postError(new Error(`${label}: falha ao aplicar overlay: ${errorMessage(error)}`));
     return false;
   }
 }
@@ -1366,7 +1379,7 @@ async function prepareAutomationTarget(target: Selection): Promise<boolean> {
 async function automationHit(config: AutomationConfig): Promise<void> {
   const target = resolveAutomationTarget(config);
   if (!target) return;
-  if (!(await prepareAutomationTarget(target))) return;
+  if (!(await prepareStageTarget(target, 'automation', 'Automação'))) return;
 
   const effectParams = automationParams(config, 'hit');
   await playEffect(target, 'hit', effectParams, 'automation');
@@ -1388,7 +1401,7 @@ async function automationContinuous(config: AutomationConfig): Promise<void> {
   }
 
   const mode: PulseMode = normalizeMode(config.mode) === 'pulse' ? 'pulse' : 'strobe';
-  if (!(await prepareAutomationTarget(target))) return;
+  if (!(await prepareStageTarget(target, 'automation', 'Automação'))) return;
 
   const effectParams = automationParams(config, mode);
   await playEffect(target, mode, effectParams, 'automation');
@@ -1443,7 +1456,7 @@ async function automationOverlay(config: AutomationConfig): Promise<void> {
     return;
   }
 
-  if (!(await prepareAutomationTarget(target))) return;
+  if (!(await prepareStageTarget(target, 'automation', 'Automação'))) return;
   await emitState();
   postToast('info', `Automação: overlay aplicado em ${targetDescription(target)}.`);
 }
@@ -1651,6 +1664,175 @@ function registerAutomation(): void {
   });
 }
 
+// ── Ações externas (Companion, scripts, outros plugins) ──────
+//
+// O plugin não abre porta nem faz rede: o Spresenter entrega a chamada já
+// autenticada. `start` e `stop` são o mesmo liga/desliga do painel, com dono
+// próprio — o efeito iniciado de fora não é confundido com o do operador.
+
+const EXTERNAL_LABEL = 'Companion';
+
+interface ExternalEffectSummary {
+  output: string;
+  layer: number;
+  mode: PulseMode;
+  frequencyHz: number;
+  requestedHz: number;
+  clamped: boolean;
+}
+
+function summarizeExternalEffect(
+  target: Selection,
+  mode: PulseMode,
+  appliedParams: FxParams,
+  requestedHz: number,
+): ExternalEffectSummary {
+  const clamp = clampFrequency(requestedHz, appliedParams.safetyLock);
+  return {
+    output: target.output,
+    layer: target.layer,
+    mode,
+    frequencyHz: appliedParams.frequencyHz,
+    requestedHz: clamp.requestedHz,
+    clamped: clamp.clamped || clamp.invalid,
+  };
+}
+
+function invalidTarget(): Error {
+  return spresenter.requests.error(
+    400,
+    'Alvo inválido: confira output e layer, ou deixe vazio para usar a seleção do painel.',
+  );
+}
+
+async function externalStart(request: StartRequest): Promise<unknown> {
+  const target = resolveAutomationTarget(request.config);
+  if (!target) throw invalidTarget();
+
+  const requestedHz =
+    request.config.frequency === undefined
+      ? DEFAULT_PARAMS.frequencyHz
+      : Number(request.config.frequency);
+  const effectParams = automationParams(request.config, request.mode, 'external');
+
+  if (!(await prepareStageTarget(target, 'external', EXTERNAL_LABEL))) {
+    throw spresenter.requests.error(
+      409,
+      `Não foi possível aplicar o overlay em ${targetDescription(target)}.`,
+    );
+  }
+
+  if (!(await playEffect(target, request.mode, effectParams, 'external'))) {
+    throw spresenter.requests.error(409, 'Falha ao aplicar o efeito na camada.');
+  }
+
+  await emitState();
+  return {
+    ok: true,
+    effect: summarizeExternalEffect(target, request.mode, effectParams, requestedHz),
+  };
+}
+
+async function externalStop(request: StopRequest): Promise<unknown> {
+  const target = resolveAutomationTarget(request.config);
+  if (!target) throw invalidTarget();
+
+  const key = targetKey(target.output, target.layer);
+  const runtime = effects.get(key);
+  if (!runtime) return { ok: true, stopped: false };
+
+  // Soltar o botão do Companion não pode derrubar um efeito que o operador
+  // ligou no painel: só o que veio de fora é encerrado, salvo com `force`.
+  if (runtime.effect.owner !== 'external' && !request.force) {
+    return { ok: true, stopped: false, owner: runtime.effect.owner };
+  }
+
+  const owner = runtime.effect.owner;
+  await stopRuntime(key, true);
+  await emitState();
+  return { ok: true, stopped: true, owner };
+}
+
+function externalState(): unknown {
+  return {
+    ok: true,
+    version: spresenter.manifest.version,
+    safetyLock: params.safetyLock,
+    selection: { ...selection },
+    effects: [...effects.values()]
+      .map((runtime) => ({ ...runtime.effect }))
+      .sort((a, b) => a.startedAt - b.startedAt),
+    outputs: outputs.map((output) => ({
+      index: output.index,
+      name: output.name,
+      disabledLayers: [...output.disabledLayers],
+    })),
+    layers: layers.map((layer) => ({ index: layer.index, name: layer.name ?? '' })),
+  };
+}
+
+function registerRequests(): void {
+  const register = (
+    action: string,
+    handler: (payload: unknown) => Promise<unknown>,
+    definition: { name: string; description: string; sample?: Record<string, unknown> },
+  ): void => {
+    try {
+      spresenter.requests.on(action, handler, definition);
+    } catch (error) {
+      log.error(`requests.on(${action}):`, errorMessage(error));
+    }
+  };
+
+  register(
+    'start',
+    async (payload) => {
+      const parsed = parseStartRequest(payload);
+      if (!parsed.ok) throw spresenter.requests.error(parsed.status, parsed.message);
+      await ensureReady();
+      return queue.run(() => externalStart(parsed.value));
+    },
+    {
+      name: 'Ligar efeito contínuo',
+      description: 'Liga Strobe ou Pulse na camada até um pedido de stop.',
+      sample: {
+        mode: 'strobe',
+        frequency: 8,
+        color: '#22d3ee',
+        output: '1',
+        layer: 3,
+      },
+    },
+  );
+
+  register(
+    'stop',
+    async (payload) => {
+      const parsed = parseStopRequest(payload);
+      if (!parsed.ok) throw spresenter.requests.error(parsed.status, parsed.message);
+      await ensureReady();
+      return queue.run(() => externalStop(parsed.value));
+    },
+    {
+      name: 'Desligar efeito contínuo',
+      description: 'Desliga o efeito iniciado por esta API. Use force para qualquer dono.',
+      sample: { output: '1', layer: 3 },
+    },
+  );
+
+  register(
+    'state',
+    async () => {
+      await ensureReady();
+      return queue.run(() => externalState());
+    },
+    {
+      name: 'Estado atual',
+      description: 'Efeitos ativos, trava de segurança e lista de saídas e camadas.',
+    },
+  );
+}
+
 // ── Ponte UI ─────────────────────────────────────────────────
 
 async function handleCommand(command: UiCommand): Promise<void> {
@@ -1777,6 +1959,7 @@ function ensureReady(): Promise<void> {
 // ── Bootstrap (registro síncrono, antes de qualquer await) ───
 
 registerAutomation();
+registerRequests();
 setupUiBridge();
 registerEvents();
 void ensureReady();

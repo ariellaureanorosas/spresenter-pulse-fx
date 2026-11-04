@@ -18,7 +18,7 @@ import {
   outputLabel,
   sanitizeLayer,
 } from '../shared/selection';
-import type { FxParams, LayerDto, PulseMode } from '../shared/types';
+import type { ClampSource, FxParams, LayerDto, PulseMode } from '../shared/types';
 import { usePulseBridge } from './bridge';
 import {
   IconAlert,
@@ -62,9 +62,10 @@ const MODE_HINT: Record<PulseMode, string> = {
   pulse: 'Respiração contínua e suave, de 0,5 a 20 Hz conforme a trava de segurança.',
 };
 
-const CLAMP_SOURCE: Record<'ui' | 'automation' | 'storage', string> = {
+const CLAMP_SOURCE: Record<ClampSource, string> = {
   ui: 'painel',
   automation: 'automação',
+  external: 'Companion',
   storage: 'preferências salvas',
 };
 
@@ -246,7 +247,9 @@ export function App() {
   const runDescription = selectedEffect
     ? selectedEffect.owner === 'automation'
       ? 'Iniciado pela automação do Spresenter.'
-      : 'Iniciado por este painel.'
+      : selectedEffect.owner === 'external'
+        ? 'Iniciado pelo Companion (Bitfocus).'
+        : 'Iniciado por este painel.'
     : applied
       ? 'A camada está preparada para o próximo efeito.'
       : 'O primeiro disparo aplica o overlay automaticamente.';
@@ -299,7 +302,7 @@ export function App() {
               type="button"
               className={cx('pfx-stopall', activeCount > 0 && 'is-hot')}
               onClick={() => send({ type: 'stopAll' })}
-              title="Parar todos os efeitos, inclusive os da automação"
+              title="Parar todos os efeitos, inclusive os da automação e do Companion"
             >
               <IconStop size={15} />
               <span>Parar tudo</span>
@@ -727,6 +730,7 @@ export function App() {
               <div className="pfx-run-title">
                 <strong>{runTitle}</strong>
                 {selectedEffect?.owner === 'automation' && <Badge tone="info">automação</Badge>}
+                {selectedEffect?.owner === 'external' && <Badge tone="accent">Companion</Badge>}
               </div>
               <span>{runDescription}</span>
             </div>

@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react';
 import { buildPreviewStyle } from '../../shared/overlay';
 import { MODE_LABELS, TARGET_LABELS } from '../../shared/params';
-import type { FxParams } from '../../shared/types';
+import type { EffectOwner, FxParams } from '../../shared/types';
 import { IconPlay, IconRefresh } from './Icons';
 import { Badge, Card, cx } from './ui';
 
@@ -14,7 +14,7 @@ export function Preview({
   params: FxParams;
   active: boolean;
   applied: boolean;
-  owner?: 'ui' | 'automation';
+  owner?: EffectOwner;
 }) {
   const [replay, setReplay] = useState(0);
   const rawId = useId();
