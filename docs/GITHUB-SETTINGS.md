@@ -30,6 +30,15 @@ Os checks exigidos no ruleset são os produzidos por `verify.yml`:
 O SHA pinning é verificado pelo próprio GitHub: um `uses:` sem SHA completo passa
 a falhar no workflow, não apenas na revisão.
 
+### Dependabot
+
+Atualizações de versão rodam toda segunda-feira, com uma semana de `cooldown`
+contra pacote recém-publicado. **Minors e patches** chegam agrupados num único
+PR; **majors não são abertos automaticamente** — React 19 e TypeScript 7, por
+exemplo, exigem mudança de código e conferência no app, então entram numa rodada
+própria. Os alertas de segurança e os security updates continuam chegando por
+outro canal e não passam por essa regra.
+
 ## Estado verificado
 
 Verificado em **2026-10-28**, depois da abertura do repositório.
